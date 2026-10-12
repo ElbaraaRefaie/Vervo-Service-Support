@@ -1,0 +1,2057 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e151b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Support queue</title>
+<script>try{var t=localStorage.getItem("sq.theme")||(matchMedia("(prefers-color-scheme: light)").matches?"light":"dark");document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0e151b;
+  --grid: rgba(125, 160, 190, .05);
+  --panel: #15202a;
+  --panel-2: #1c2a36;
+  --card: #1a2631;
+  --ink: #e9eff3;
+  --ink-2: #a7b5bf;
+  --ink-3: #77878f;
+  --line: #2a3947;
+  --band: #081015;
+  --crit: #ff5a4d;
+  --high: #ffb629;
+  --med: #4d94ff;
+  --low: #8a9aa3;
+  --ok: #3fd987;
+  --crit-ink: #ff8277;
+  --high-ink: #ffc95c;
+  --med-ink: #7db4ff;
+  --focus: #7db4ff;
+  --btn: #e9eff3;
+  --btn-ink: #0e151b;
+  --shadow: 0 12px 44px rgba(0, 0, 0, .55);
+  --font-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Consolas, monospace;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #e6eae6;
+  --grid: rgba(24, 34, 43, .045);
+  --panel: #f6f8f5;
+  --panel-2: #eceff0;
+  --card: #ffffff;
+  --ink: #18222b;
+  --ink-2: #4a5863;
+  --ink-3: #6b7982;
+  --line: #c8cfca;
+  --band: #18222b;
+  --crit: #cf3b2e;
+  --high: #e39a12;
+  --med: #2d6cdf;
+  --low: #7c8b84;
+  --ok: #23824f;
+  --crit-ink: #b52a1f;
+  --high-ink: #8a5a00;
+  --med-ink: #1f56bd;
+  --focus: #1d5fd1;
+  --btn: #18222b;
+  --btn-ink: #ffffff;
+  --shadow: 0 12px 44px rgba(10, 20, 30, .3);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; min-height: 100vh;
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--ink);
+  font: 400 16px/1.45 var(--font-body);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+h1, h2, h3, h4, p, dl, dd, ul, ol { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+code, kbd { font-family: var(--font-mono); font-size: .88em; background: var(--panel-2); padding: 1px 6px; border-radius: 4px; }
+[hidden] { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.mono { font-family: var(--font-mono); }
+
+/* ---------- top bar ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px clamp(12px, 3vw, 28px); padding-top: calc(10px + env(safe-area-inset-top));
+  background: var(--panel); border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand h1 { font: 700 24px/1 var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand-mark { display: grid; gap: 3px; padding: 5px 6px; background: #081015; border-radius: 4px; flex: none; }
+.brand-mark i { display: block; width: 8px; height: 8px; border-radius: 50%; }
+.brand-mark i:nth-child(1) { background: #ff5a4d; }
+.brand-mark i:nth-child(2) { background: #ffb629; }
+.brand-mark i:nth-child(3) { background: #3fd987; }
+.nav { display: flex; gap: 4px; margin-left: 8px; }
+.nav button { border: 0; background: transparent; padding: 8px 14px; border-radius: 6px; font-weight: 600; color: var(--ink-2); }
+.nav button[aria-current="page"] { background: var(--panel-2); color: var(--ink); box-shadow: inset 0 -3px 0 var(--ink); }
+.top-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--card); }
+.seg button { border: 0; background: transparent; padding: 8px 12px; font-weight: 500; font-size: 14px; display: inline-flex; align-items: center; gap: 7px; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--btn); color: var(--btn-ink); }
+.seg .dot { width: 9px; height: 9px; border-radius: 50%; }
+.dot.g { background: var(--ok); } .dot.a { background: var(--high); } .dot.r { background: var(--crit); }
+
+/* ---------- controls ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px;
+  border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 15px;
+}
+.btn:hover { border-color: var(--ink-3); }
+.btn.primary { background: var(--btn); border-color: var(--btn); color: var(--btn-ink); }
+.btn.ok { background: var(--ok); border-color: var(--ok); color: #04170d; }
+.btn.danger { color: var(--crit-ink); border-color: color-mix(in srgb, var(--crit) 45%, var(--line)); }
+.btn.sm { min-height: 32px; padding: 4px 10px; font-size: 13px; border-radius: 6px; }
+.btn.block { width: 100%; }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+.iconbtn { border: 1px solid var(--line); background: var(--card); width: 40px; height: 40px; border-radius: 8px; display: inline-grid; place-items: center; font-size: 18px; line-height: 1; }
+.iconbtn:hover { border-color: var(--ink-3); }
+.iconbtn[aria-pressed="false"] { color: var(--ink-3); }
+.x { border: 0; background: transparent; font-size: 28px; line-height: 1; width: 40px; height: 40px; border-radius: 8px; color: var(--ink-2); }
+.x:hover { background: var(--panel-2); }
+.link { border: 0; background: none; padding: 4px 0; color: var(--focus); font-size: 14px; text-decoration: underline; }
+.badge { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--btn); color: var(--btn-ink); }
+
+.field { display: grid; gap: 5px; }
+.field > span { font-size: 14px; font-weight: 600; }
+.field em { font-weight: 400; font-style: normal; color: var(--ink-3); }
+input[type="text"], input[type="email"], input[type="password"], input[type="search"], select, textarea {
+  width: 100%; min-height: 42px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2);
+}
+input::placeholder, textarea::placeholder { color: var(--ink-3); }
+textarea { resize: vertical; }
+.check { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; min-height: 40px; }
+.check input { width: 18px; height: 18px; accent-color: var(--ink); }
+.hint { font-size: 13px; color: var(--ink-2); }
+.form-error { color: var(--crit-ink); font-size: 14px; font-weight: 500; }
+
+/* ---------- layout ---------- */
+main { max-width: 1520px; margin: 0 auto; padding: 18px clamp(12px, 3vw, 28px) 96px; }
+.card-note { max-width: 680px; margin: 40px auto; padding: 26px; background: var(--panel); border: 1px solid var(--line); border-left: 6px solid var(--high); border-radius: 6px; display: grid; gap: 12px; }
+.card-note h2 { font: 700 30px/1.1 var(--font-display); }
+.card-note ol { list-style: decimal; padding-left: 22px; display: grid; gap: 8px; }
+.card-note pre { margin: 0; max-height: 280px; overflow: auto; padding: 12px; background: var(--panel-2); border-radius: 6px; font: 12px/1.5 var(--font-mono); }
+.loading { text-align: center; padding: 80px 0; color: var(--ink-2); }
+
+/* ---------- status band ---------- */
+.band {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 22px; align-items: center;
+  background: var(--band); color: #eef2f0; border-radius: 10px; padding: 20px 24px; border: 1px solid #243340;
+}
+.lamp { display: grid; gap: 7px; padding: 9px; background: #04090d; border-radius: 12px; }
+.lamp i { width: 34px; height: 34px; border-radius: 50%; background: #25303a; box-shadow: inset 0 0 0 2px rgba(0,0,0,.4); transition: background .2s, box-shadow .2s; }
+.lamp[data-state="red"] i:nth-child(1) { background: #ff5a4d; box-shadow: 0 0 22px 4px rgba(255,90,77,.55); }
+.lamp[data-state="amber"] i:nth-child(2) { background: #ffb629; box-shadow: 0 0 22px 4px rgba(255,182,41,.5); }
+.lamp[data-state="green"] i:nth-child(3) { background: #3fd987; box-shadow: 0 0 22px 4px rgba(63,217,135,.45); }
+.band-state { font: 700 42px/1 var(--font-display); }
+.band-now { margin-top: 10px; display: grid; gap: 6px; }
+.band-now button { text-align: left; border: 0; background: #1b2a36; color: #fff; border-radius: 6px; padding: 9px 12px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.band-now button:hover { background: #26394a; }
+.band-now .no { font-weight: 700; font-family: var(--font-mono); font-size: 13px; }
+.band-now .since { color: #9fb0ba; font-size: 13px; margin-left: auto; font-family: var(--font-mono); }
+.band-free { color: #9fb0ba; }
+.band-warn { color: #ffd37a; font-size: 14px; }
+.band-msg { margin-top: 8px; color: #cfd8dc; max-width: 70ch; }
+.msg-edit { display: grid; gap: 4px; margin-top: 12px; max-width: 540px; font-size: 13px; color: #9fb0ba; }
+.msg-edit input { background: #04090d; border-color: #33444f; color: #fff; }
+.stats { display: grid; grid-template-columns: repeat(2, minmax(110px, auto)); gap: 12px 28px; }
+.stats div { border-left: 2px solid #33444f; padding-left: 12px; }
+.stats dt { font-size: 13px; color: #9fb0ba; }
+.stats dd { font: 600 28px/1.1 var(--font-display); }
+
+/* ---------- toolbar ---------- */
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 16px 0 12px; }
+.search { position: relative; flex: 1 1 280px; max-width: 480px; }
+.search kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip-btn { border: 1px solid var(--line); background: var(--card); border-radius: 99px; padding: 6px 12px; font-size: 14px; font-weight: 500; display: inline-flex; gap: 7px; align-items: center; min-height: 36px; }
+.chip-btn[aria-pressed="true"] { background: var(--btn); color: var(--btn-ink); border-color: var(--btn); }
+.chip-btn .sw { width: 9px; height: 9px; border-radius: 50%; }
+.toolbar select { width: auto; min-width: 150px; }
+.mfilter { display: inline-flex; align-items: center; gap: 6px; background: var(--med); color: #fff; border-radius: 99px; padding: 4px 6px 4px 12px; font-size: 14px; font-weight: 600; }
+.mfilter button { border: 0; background: rgba(255,255,255,.25); color: #fff; width: 24px; height: 24px; border-radius: 50%; line-height: 1; }
+
+/* ---------- board ---------- */
+.lane-tabs { display: none; }
+.board { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.3fr) minmax(0, .95fr) minmax(0, .95fr); gap: 12px; align-items: start; }
+.lane { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; min-height: 160px; transition: outline-color .1s; outline: 2px solid transparent; outline-offset: 2px; }
+.lane.drop-target { outline-color: var(--focus); background: var(--panel-2); }
+.lane h2 { font: 600 21px/1 var(--font-display); display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+.count { font: 600 13px/1 var(--font-body); background: var(--btn); color: var(--btn-ink); border-radius: 99px; padding: 3px 9px; }
+.lane-body { display: grid; gap: 10px; }
+.empty { color: var(--ink-2); font-size: 14px; padding: 4px 2px; }
+
+.ticket {
+  position: relative; display: grid; gap: 7px; background: var(--card); border: 1px solid var(--line); border-left: 6px solid var(--low);
+  border-radius: 6px; padding: 11px 12px 10px; cursor: pointer; user-select: none; -webkit-user-select: none;
+}
+.ticket:hover { border-color: var(--ink-3); border-left-color: inherit; }
+.ticket.p-critical { border-left-color: var(--crit); }
+.ticket.p-high { border-left-color: var(--high); }
+.ticket.p-medium { border-left-color: var(--med); }
+.ticket.p-low { border-left-color: var(--low); }
+.ticket.is-dragging { opacity: .35; }
+.lane-in_progress .ticket { padding: 14px 14px 12px; }
+.lane-in_progress .t-title { font-size: 19px; }
+.ghost { position: fixed; z-index: 100; pointer-events: none; width: 300px; opacity: .95; box-shadow: var(--shadow); transform: rotate(1.5deg); }
+.t-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
+.grip { width: 16px; height: 22px; flex: none; cursor: grab; touch-action: none; margin: -2px 0 -2px -4px;
+  background-image: radial-gradient(circle, var(--ink-3) 1.4px, transparent 1.6px); background-size: 6px 6px; background-position: 2px 2px; }
+.t-no { font-family: var(--font-mono); font-weight: 600; font-size: 12px; }
+.prio { font-weight: 600; }
+.p-critical .prio { color: var(--crit-ink); } .p-high .prio { color: var(--high-ink); } .p-medium .prio { color: var(--med-ink); } .p-low .prio { color: var(--ink-2); }
+.pos { margin-left: auto; font: 700 20px/1 var(--font-display); color: var(--ink-2); }
+.chip { background: var(--panel-2); border-radius: 4px; padding: 1px 7px; font-size: 12px; color: var(--ink-2); }
+.chip.down { background: color-mix(in srgb, var(--crit) 22%, transparent); color: var(--crit-ink); font-weight: 600; }
+.chip.rep { background: color-mix(in srgb, var(--high) 22%, transparent); color: var(--high-ink); font-weight: 600; }
+.t-title { font: 600 16px/1.3 var(--font-body); }
+.t-meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 14px; color: var(--ink-2); }
+.serial { font: 500 12.5px/1.6 var(--font-mono); color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); padding: 0 7px; border-radius: 4px; }
+button.serial:hover { border-color: var(--med); color: var(--med-ink); }
+.alarm { font: 500 12.5px/1.6 var(--font-mono); color: var(--crit-ink); }
+.tags { display: flex; gap: 5px; flex-wrap: wrap; }
+.tag { font-size: 12px; padding: 1px 8px; border: 1px solid var(--line); border-radius: 99px; color: var(--ink-2); }
+.t-foot { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--ink-3); }
+.t-foot .live { font-family: var(--font-mono); color: var(--ok); font-weight: 600; }
+.me { color: var(--focus); font-weight: 600; }
+.sla { display: grid; gap: 3px; font: 500 12px/1.2 var(--font-mono); color: var(--ink-2); }
+.sla-bar { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.sla-bar i { display: block; height: 100%; background: var(--ok); }
+.sla.warn { color: var(--high-ink); } .sla.warn i { background: var(--high); }
+.sla.late { color: var(--crit-ink); font-weight: 600; } .sla.late i { background: var(--crit); }
+.quick { display: flex; gap: 6px; flex-wrap: wrap; padding-top: 2px; }
+.ticket.compact { gap: 4px; padding: 8px 10px; }
+.ticket.compact .t-title { font-size: 14px; font-weight: 500; }
+.st-done { color: var(--ok); font-weight: 600; } .st-cancelled { color: var(--ink-3); font-weight: 600; }
+
+.dropbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; display: none; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 10px 10px calc(10px + env(safe-area-inset-bottom)); background: var(--panel); border-top: 1px solid var(--line); }
+.dropbar div { text-align: center; padding: 16px 4px; border: 2px dashed var(--line); border-radius: 8px; font-weight: 600; font-size: 13px; }
+.dropbar div.drop-target { border-color: var(--focus); background: var(--panel-2); }
+body.dragging-small .dropbar { display: grid; }
+body.dragging { cursor: grabbing; }
+
+/* ---------- insights ---------- */
+.ins-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.ins-head h2 { font: 700 28px/1 var(--font-display); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.kpi dt { font-size: 13px; color: var(--ink-2); }
+.kpi dd { font: 600 32px/1.1 var(--font-display); }
+.kpi small { color: var(--ink-3); font-size: 12px; }
+.ins-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 10px; align-content: start; }
+.panel h3 { font: 600 20px/1 var(--font-display); }
+.panel.wide { grid-column: 1 / -1; }
+.legend { display: flex; gap: 14px; font-size: 13px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 2px; vertical-align: -1px; }
+.cols { display: flex; align-items: flex-end; gap: 3px; height: 150px; border-bottom: 1px solid var(--line); }
+.col { flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 1px; position: relative; }
+.col .bar { flex: 1; max-width: 14px; border-radius: 2px 2px 0 0; min-height: 2px; }
+.col .o { background: var(--med); } .col .c { background: var(--ok); }
+.axis { display: flex; gap: 3px; font: 11px/1 var(--font-mono); color: var(--ink-3); }
+.axis span { flex: 1; text-align: center; overflow: hidden; }
+.rows { display: grid; gap: 6px; }
+.rowbar { display: grid; grid-template-columns: minmax(80px, 150px) 1fr 34px; gap: 10px; align-items: center; width: 100%; text-align: left; border: 0; background: transparent; padding: 4px 6px; border-radius: 6px; font-size: 14px; }
+button.rowbar:hover { background: var(--panel-2); }
+.rowbar .lab { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rowbar .track { height: 10px; background: var(--panel-2); border-radius: 3px; overflow: hidden; }
+.rowbar .track i { display: block; height: 100%; background: var(--med); }
+.rowbar .n { text-align: right; font-family: var(--font-mono); }
+
+/* ---------- dialogs ---------- */
+dialog.dlg { width: min(800px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); border: 1px solid var(--line); border-radius: 12px; padding: 0; background: var(--panel); color: var(--ink); box-shadow: var(--shadow); }
+dialog.dlg.narrow { width: min(420px, calc(100vw - 24px)); }
+dialog.dlg::backdrop { background: rgba(4, 9, 13, .62); }
+.dlg-body { display: grid; gap: 16px; padding: 18px 22px 22px; }
+.dlg-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.dlg-head h2 { font: 700 28px/1.1 var(--font-display); }
+.dlg-foot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.dlg-foot .right { margin-left: auto; display: flex; gap: 10px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.auth-links { display: flex; justify-content: space-between; }
+
+.stepper { display: flex; gap: 6px; }
+.stepper li { flex: 1; padding: 8px 4px 0; border-top: 4px solid var(--line); font-size: 13px; color: var(--ink-3); }
+.stepper li.done { border-top-color: var(--ink-2); color: var(--ink-2); }
+.stepper li.on { border-top-color: var(--high); color: var(--ink); font-weight: 600; }
+.step { display: grid; gap: 14px; }
+.step h3 { font: 600 22px/1 var(--font-display); }
+.pick { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.pick label { position: relative; display: block; }
+.pick input { position: absolute; opacity: 0; inset: 0; }
+.pick span { display: grid; gap: 2px; padding: 10px 12px 10px 14px; border: 1px solid var(--line); border-left-width: 6px; border-radius: 6px; background: var(--card); cursor: pointer; height: 100%; }
+.pick b { font-weight: 600; }
+.pick small { color: var(--ink-2); font-size: 13px; }
+.pick label.p-critical span { border-left-color: var(--crit); } .pick label.p-high span { border-left-color: var(--high); }
+.pick label.p-medium span { border-left-color: var(--med); } .pick label.p-low span { border-left-color: var(--low); }
+.pick input:checked + span { outline: 2px solid var(--ink); outline-offset: -1px; background: var(--panel-2); }
+.pick input:focus-visible + span { outline: 3px solid var(--focus); }
+.tagpick { display: flex; flex-wrap: wrap; gap: 6px; }
+.tagpick label { position: relative; }
+.tagpick input { position: absolute; opacity: 0; inset: 0; }
+.tagpick span { display: inline-flex; align-items: center; min-height: 36px; padding: 4px 12px; border: 1px solid var(--line); border-radius: 99px; background: var(--card); font-size: 14px; cursor: pointer; }
+.tagpick input:checked + span { background: var(--btn); color: var(--btn-ink); border-color: var(--btn); }
+.tagpick input:focus-visible + span { outline: 3px solid var(--focus); }
+.seen { font-size: 13px; color: var(--med-ink); }
+.summary { display: grid; gap: 6px; background: var(--panel-2); border-radius: 8px; padding: 12px 14px; font-size: 14px; }
+.summary b { font-weight: 600; }
+
+.d-title { font: 700 30px/1.1 var(--font-display); }
+.d-sub { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; font-size: 14px; color: var(--ink-2); margin-top: 6px; }
+.pill { font-weight: 600; font-size: 13px; padding: 2px 10px; border-radius: 99px; background: #52606a; color: #fff; }
+.pill.s-in_progress, .pill.s-done { background: var(--ok); color: #04170d; }
+.pill.s-waiting { background: var(--high); color: #2b1d00; }
+.pill.s-cancelled { background: var(--ink-3); }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; }
+.facts div { min-width: 0; }
+.facts dt { font-size: 13px; color: var(--ink-3); }
+.facts dd { overflow-wrap: anywhere; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.facts .wide { grid-column: 1 / -1; }
+.locked { padding: 10px 12px; background: var(--panel-2); border-radius: 6px; font-size: 14px; color: var(--ink-2); }
+.secret { font: 14px/1.5 var(--font-mono); background: var(--bg); border: 1px dashed var(--ink-3); border-radius: 6px; padding: 10px 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.d-sec { display: grid; gap: 8px; }
+.d-sec h3 { font: 600 20px/1 var(--font-display); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.history { display: grid; gap: 0; }
+.history li { display: grid; grid-template-columns: 100px 1fr; gap: 10px; font-size: 14px; padding: 8px 0; border-top: 1px solid var(--line); }
+.history time { color: var(--ink-3); font-family: var(--font-mono); font-size: 12px; }
+.mlist li button { display: grid; grid-template-columns: 70px 1fr auto; gap: 10px; width: 100%; text-align: left; border: 0; background: transparent; padding: 8px 6px; border-top: 1px solid var(--line); font-size: 14px; }
+.mlist li button:hover { background: var(--panel-2); }
+.prio-edit { display: flex; align-items: center; gap: 10px; }
+.prio-edit select { width: auto; }
+
+.toasts { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom)); display: grid; gap: 8px; z-index: 200; width: min(420px, calc(100vw - 24px)); }
+.toast { background: var(--btn); color: var(--btn-ink); padding: 11px 14px; border-radius: 8px; font-size: 14px; box-shadow: var(--shadow); }
+.toast.err { background: var(--crit); color: #fff; }
+
+.fab { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 30; display: none; box-shadow: var(--shadow); min-height: 52px; padding: 0 20px; border-radius: 26px; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1180px) {
+  .board { grid-template-columns: 1fr 1fr; }
+  .band { grid-template-columns: auto minmax(0, 1fr); }
+  .stats { grid-column: 1 / -1; grid-template-columns: repeat(4, 1fr); }
+  .ins-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .brand h1 { font-size: 20px; }
+  .nav { margin-left: 0; }
+  .nav button { padding: 8px 10px; }
+  .top-actions .desk { display: none; }
+  .fab { display: inline-flex; }
+  .band { padding: 14px; gap: 14px; }
+  .band-state { font-size: 34px; }
+  .lamp i { width: 26px; height: 26px; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .lane-tabs { display: flex; gap: 4px; position: sticky; top: 56px; z-index: 10; background: var(--bg); padding: 8px 0; overflow-x: auto; }
+  .lane-tab { flex: 1 0 auto; border: 1px solid var(--line); background: var(--card); border-radius: 8px; padding: 8px 10px; font-weight: 600; font-size: 14px; display: inline-flex; gap: 6px; align-items: center; justify-content: center; }
+  .lane-tab[aria-selected="true"] { background: var(--btn); color: var(--btn-ink); border-color: var(--btn); }
+  .lane-tab[aria-selected="true"] .count { background: var(--btn-ink); color: var(--btn); }
+  .board { display: block; }
+  .lane { display: none; }
+  .lane.active { display: block; }
+  .lane h2 { display: none; }
+  .toolbar select { flex: 1; }
+  .search kbd { display: none; }
+  dialog.dlg { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; border-radius: 0; border: 0; }
+  dialog.dlg.narrow { height: auto; max-height: 100dvh; margin: auto 0 0; border-radius: 14px 14px 0 0; width: 100vw; max-width: 100vw; }
+  .dlg-body { padding: 14px 14px calc(22px + env(safe-area-inset-bottom)); }
+  .grid2, .facts, .pick { grid-template-columns: 1fr; }
+  .history li { grid-template-columns: 1fr; gap: 2px; }
+  .rowbar { grid-template-columns: minmax(70px, 110px) 1fr 30px; }
+}
+@media (hover: none) { .ticket:hover { border-color: var(--line); } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+#stateSegMobile { display: none; }
+@media (max-width: 760px) { #stateSegMobile:not([hidden]) { display: inline-flex; } }
+
+.fatal-detail { margin: 0; max-height: 240px; overflow: auto; padding: 12px; background: var(--panel-2); border-radius: 6px; font: 12px/1.5 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* ======================= currently working on ======================= */
+.hero { --hg: 240, 138, 28; display: grid; gap: 12px; }
+.hero[data-mode="free"] { --hg: 63, 217, 135; }
+.hero[data-mode="away"], .hero[data-pri="critical"] { --hg: 255, 90, 77; }
+.hero-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.hero-bar { width: 6px; height: 26px; border-radius: 3px; background: rgb(var(--hg)); box-shadow: 0 0 14px rgba(var(--hg), .7); }
+.hero-head h2 { font: 700 20px/1 var(--font-display); letter-spacing: .08em; text-transform: uppercase; }
+.hero-head .seg { margin-left: auto; }
+.hbadge { font: 600 12px/1 var(--font-mono); letter-spacing: .04em; text-transform: uppercase; padding: 7px 11px; border-radius: 99px; border: 1px solid var(--line); background: var(--card); color: var(--ink-2); }
+.hbadge.active { color: rgb(var(--hg)); border-color: rgba(var(--hg), .6); background: rgba(var(--hg), .12); }
+:root[data-theme="light"] .hero[data-mode="active"] .hbadge.active { color: #8a4a00; }
+.hbadge.urgent { background: #e5392c; border-color: #e5392c; color: #fff; }
+.hbadge.pri.p-critical { background: #ff5a4d; border-color: #ff5a4d; color: #2b0703; }
+.hbadge.pri.p-high { background: #ffb629; border-color: #ffb629; color: #2b1d00; }
+.hbadge.pri.p-medium { background: #4d94ff; border-color: #4d94ff; color: #06142b; }
+.hbadge.pri.p-low { background: #8a9aa3; border-color: #8a9aa3; color: #10181d; }
+.hbadge.load[data-level="heavy"] { background: var(--crit); border-color: var(--crit); color: #fff; }
+.hbadge.load[data-level="moderate"] { background: color-mix(in srgb, var(--high) 25%, var(--card)); border-color: var(--high); color: var(--ink); }
+.hbadge.load[data-level="light"] { background: color-mix(in srgb, var(--ok) 20%, var(--card)); border-color: var(--ok); color: var(--ink); }
+.hbadge.load[data-level="away"] { background: var(--crit); border-color: var(--crit); color: #fff; }
+
+.hero-card, .hero-free {
+  color: #eaf0f4; border: 2px solid rgb(var(--hg)); border-radius: 20px; overflow: hidden;
+  background-color: #080d12;
+  background-image: linear-gradient(rgba(125,160,190,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(125,160,190,.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+  box-shadow: 0 0 0 4px rgba(var(--hg), .12), 0 0 46px rgba(var(--hg), .32);
+}
+.hero-card { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(290px, 1fr); }
+.hero[data-mode="active"] .hero-card { animation: glow 2.8s ease-in-out infinite; }
+@keyframes glow { 50% { box-shadow: 0 0 0 4px rgba(var(--hg), .2), 0 0 68px rgba(var(--hg), .52); } }
+.hero-main { display: grid; gap: 14px; padding: 22px 24px; align-content: start; min-width: 0; }
+.hm-top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.hm-top .hbadge { background-clip: padding-box; }
+.hchip { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border: 1px solid #2c3b47; border-radius: 99px; background: #0f1820; color: #eaf0f4; font-size: 14px; }
+button.hchip { cursor: pointer; }
+button.hchip:hover { border-color: rgb(var(--hg)); }
+.hchip.mono { font-size: 13px; }
+.live { display: inline-flex; align-items: center; gap: 7px; font: 500 13px/1 var(--font-mono); color: #9fb0ba; }
+.live i { width: 9px; height: 9px; border-radius: 50%; background: #3fd987; box-shadow: 0 0 10px #3fd987; }
+.elapsed { margin-left: auto; display: inline-flex; align-items: center; gap: 10px; }
+.elapsed small { font: 12px/1 var(--font-mono); color: #8fa1ad; text-transform: uppercase; letter-spacing: .06em; }
+.elapsed b { font: 700 24px/1 var(--font-display); padding: 8px 16px; border-radius: 99px; border: 1px solid rgba(var(--hg), .6); color: rgb(var(--hg)); background: rgba(var(--hg), .1); font-variant-numeric: tabular-nums; }
+.hm-title { font: 700 clamp(26px, 3.4vw, 40px)/1.1 var(--font-display); color: #fff; overflow-wrap: anywhere; }
+.hm-chips, .hm-also { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.hm-also > span { color: #8fa1ad; font-size: 14px; }
+.hm-desc { padding: 12px 15px; border: 1px solid #243340; border-radius: 12px; background: rgba(255,255,255,.035); color: #d5dee4; white-space: pre-wrap; max-height: 9.5em; overflow: auto; overflow-wrap: anywhere; }
+.hm-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.hero .btn { background: #131d26; border-color: #2c3b47; color: #eaf0f4; }
+.hero .btn:hover { border-color: #5a7080; }
+.hero .btn.ok { background: var(--ok); border-color: var(--ok); color: #04170d; }
+.viewer-note { font: 12px/1 var(--font-mono); color: #8fa1ad; padding: 10px 14px; border: 1px solid #243340; border-radius: 99px; }
+.hm-warn { color: #ffd37a; font-size: 14px; }
+
+.hero-side { display: grid; gap: 10px; padding: 18px 20px; align-content: start; border-left: 1px solid #1d2a35; background: rgba(255,255,255,.02); min-width: 0; }
+.conn-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; font: 12px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: #9fb0ba; min-height: 34px; }
+.conn-tile { display: grid; gap: 4px; padding: 11px 14px; border: 1px solid #243340; border-radius: 12px; background: #0d151c; min-width: 0; }
+.conn-tile small { font: 11px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: #8fa1ad; }
+.conn-tile b { font: 600 17px/1.3 var(--font-mono); overflow-wrap: anywhere; }
+.conn-tile span { color: #9fb0ba; font-size: 13px; }
+.conn-tile .secret-val { letter-spacing: .04em; white-space: pre-wrap; }
+.conn-actions { display: flex; gap: 8px; margin-top: 4px; }
+.conn-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.conn-tiles .conn-tile b { font-size: 15px; font-family: var(--font-body); }
+.conn-locked { color: #9fb0ba; font-size: 14px; padding: 4px 2px; }
+
+.hero-free { display: flex; align-items: center; gap: 20px; padding: 24px 26px; box-shadow: 0 0 36px rgba(var(--hg), .18); }
+.free-dot { width: 46px; height: 46px; flex: none; border-radius: 50%; background: rgb(var(--hg)); box-shadow: 0 0 28px rgba(var(--hg), .6); }
+.free-title { font: 700 40px/1 var(--font-display); }
+.free-sub { color: #9fb0ba; margin-top: 6px; }
+.nextup { margin-top: 12px; max-width: 100%; }
+
+.hero-foot { display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: center; justify-content: space-between; }
+.hero-msg { display: grid; gap: 8px; flex: 1 1 320px; min-width: 0; }
+.hero-foot .band-msg { margin: 0; color: var(--ink); font-weight: 500; max-width: 70ch; }
+.hero-foot .band-msg:empty { display: none; }
+.hero-foot .msg-edit { margin: 0; color: var(--ink-2); max-width: 560px; }
+.hero-foot .msg-edit input { background: var(--panel-2); border-color: var(--line); color: var(--ink); }
+.hero-foot .stats { grid-template-columns: repeat(4, auto); gap: 8px 26px; }
+.hero-foot .stats div { border-left-color: var(--line); }
+.hero-foot .stats dt { color: var(--ink-2); }
+.hero-foot .stats dd { color: var(--ink); }
+
+/* availability pill in the top bar */
+.avail { display: inline-flex; align-items: center; gap: 8px; padding: 6px 13px; border-radius: 99px; border: 1px solid var(--line); background: var(--card); font-size: 14px; white-space: nowrap; }
+.avail i { width: 10px; height: 10px; border-radius: 50%; background: var(--ok); flex: none; }
+.avail.busy { border-color: var(--high); background: color-mix(in srgb, var(--high) 18%, var(--card)); }
+.avail.busy i { background: var(--high); box-shadow: 0 0 10px var(--high); }
+.avail.away { border-color: var(--crit); background: color-mix(in srgb, var(--crit) 18%, var(--card)); }
+.avail.away i { background: var(--crit); }
+.avail .tick { font: 500 13px/1 var(--font-mono); color: var(--ink-2); }
+
+/* new ticket form */
+dialog.dlg.narrow-ish { width: min(560px, calc(100vw - 24px)); }
+.loadchip { display: inline-block; margin-top: 8px; font: 600 12px/1 var(--font-mono); letter-spacing: .04em; text-transform: uppercase; padding: 6px 10px; border-radius: 99px; border: 1px solid var(--line); background: var(--panel-2); }
+.loadchip[data-level="heavy"], .loadchip[data-level="away"] { background: var(--crit); border-color: var(--crit); color: #fff; }
+.loadchip[data-level="moderate"] { background: color-mix(in srgb, var(--high) 25%, var(--panel-2)); border-color: var(--high); }
+.loadchip[data-level="light"] { background: color-mix(in srgb, var(--ok) 22%, var(--panel-2)); border-color: var(--ok); }
+.notes { display: grid; gap: 6px; margin-top: 4px; }
+.notes li { display: flex; gap: 10px; align-items: flex-start; padding: 9px 12px; border-radius: 8px; border-left: 4px solid var(--med); background: var(--panel-2); font-size: 14px; }
+.notes li::before { content: "i"; flex: none; width: 18px; height: 18px; border-radius: 50%; text-align: center; font: 700 12px/18px var(--font-mono); background: var(--med); color: #fff; margin-top: 1px; }
+.notes li.warn { border-left-color: var(--high); }
+.notes li.warn::before { content: "!"; background: var(--high); color: #2b1d00; }
+.notes li.ok { border-left-color: var(--ok); }
+.notes li.ok::before { content: "\2713"; background: var(--ok); color: #04170d; }
+.who { font-size: 14px; color: var(--ink-2); }
+.pick.cols4 { grid-template-columns: repeat(2, 1fr); }
+
+@media (max-width: 1180px) { .hero-card { grid-template-columns: 1fr; } .hero-side { border-left: 0; border-top: 1px solid #1d2a35; } }
+@media (max-width: 760px) {
+  .hero-main { padding: 16px; }
+  .hero-side { padding: 14px 16px; }
+  .hero-head .seg { margin-left: 0; width: 100%; }
+  .hero-head .seg button { flex: 1; justify-content: center; }
+  .elapsed { margin-left: 0; width: 100%; }
+  .hero-foot .stats { grid-template-columns: repeat(2, 1fr); width: 100%; }
+  .free-title { font-size: 30px; }
+  .hero-free { padding: 18px; gap: 14px; }
+  .avail .long { display: none; }
+  .conn-tiles { grid-template-columns: 1fr; }
+  dialog.dlg.narrow-ish { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; border-radius: 0; border: 0; }
+}
+
+.top-actions .btn, .top-actions .badge { white-space: nowrap; }
+.top-actions { flex-wrap: nowrap; }
+.brand h1 { min-width: 0; }
+@media (max-width: 1100px) { .brand h1 { max-width: 220px; } }
+
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+    <h1 id="appTitle">Support queue</h1>
+  </div>
+  <nav class="nav" id="nav" aria-label="Views" hidden>
+    <button type="button" data-view="board" aria-current="page">Board</button>
+    <button type="button" data-view="insights">Insights</button>
+  </nav>
+  <div class="top-actions">
+    <span class="avail" id="availPill" role="status" hidden></span>
+    <button type="button" class="iconbtn desk" id="soundBtn" aria-pressed="false" title="Beep when a new ticket arrives" aria-label="Sound alerts" hidden>&#128276;</button>
+    <button type="button" class="iconbtn" id="themeBtn" title="Switch light and dark theme" aria-label="Switch theme"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg></button>
+    <button type="button" class="btn primary desk" id="newBtn" hidden>New ticket</button>
+    <button type="button" class="btn" id="userBtn" hidden></button>
+  </div>
+</header>
+
+<main>
+  <div id="loading" class="loading">Loading&hellip;</div>
+
+  <section id="fatal" class="card-note" hidden>
+    <h2>Can't start</h2>
+    <p id="fatalText"></p>
+    <pre id="fatalDetail" class="fatal-detail" hidden></pre>
+    <div><button type="button" class="btn" id="fatalCopy" hidden>Copy error details</button></div>
+  </section>
+
+  <section id="setup" class="card-note" hidden>
+    <h2>Connect your Firebase project</h2>
+    <p>This file is ready. It only needs your free Firebase project to store tickets online for everyone.</p>
+    <ol>
+      <li>Go to <b>console.firebase.google.com</b>, create a project, then add a <b>Web app</b> and copy its config.</li>
+      <li>Open this HTML file in a text editor. Near the top, replace the values in <code>FIREBASE_CONFIG</code>.</li>
+      <li>In Firebase: <b>Authentication</b>, turn on <b>Email/Password</b> and <b>Google</b>.</li>
+      <li>In Firebase: <b>Firestore Database</b>, create a database, then open <b>Rules</b>, paste the rules below and publish.</li>
+      <li>Reload this page, create your account, then make it the engineer account (the <b>Account</b> window shows how).</li>
+    </ol>
+    <div><button type="button" class="btn primary" id="copyRules">Copy security rules</button></div>
+    <details><summary>Show the rules</summary><pre id="rulesPre"></pre></details>
+    <p class="hint">To give everyone a link that works on any phone, upload this one file to Firebase Hosting (or any web host) as <code>index.html</code>.</p>
+  </section>
+
+  <section id="gate" class="card-note" hidden>
+    <h2>See the queue and add your request</h2>
+    <p>Sign in to see what is being worked on, where your request sits in line, and to open a ticket.</p>
+    <div><button type="button" class="btn primary" id="gateBtn">Sign in or create an account</button></div>
+  </section>
+
+  <div id="appView" hidden>
+    <section class="hero" id="hero" data-mode="free" aria-label="Current work">
+      <div class="hero-head">
+        <span class="hero-bar" aria-hidden="true"></span>
+        <h2>Currently working on</h2>
+        <span class="hbadge active" id="heroCount"></span>
+        <span class="hbadge urgent" id="heroUrgent" hidden></span>
+        <span class="hbadge load" id="heroLoad"></span>
+        <div class="seg" id="stateSeg" role="group" aria-label="My availability" hidden>
+          <button type="button" data-state="available"><span class="dot g"></span>Available</button>
+          <button type="button" data-state="busy"><span class="dot a"></span>Busy</button>
+          <button type="button" data-state="away"><span class="dot r"></span>Away</button>
+        </div>
+      </div>
+      <div id="heroBody"></div>
+      <div class="hero-foot">
+        <div class="hero-msg">
+          <p class="band-msg" id="bandMsg"></p>
+          <label class="msg-edit" id="msgEdit" hidden>
+            <span>Note for everyone (shown on the board and on new tickets)</span>
+            <input type="text" id="statusMsg" maxlength="140" placeholder="For example: commissioning on Line 3 until 15:00">
+          </label>
+        </div>
+        <dl class="stats" id="stats"></dl>
+      </div>
+    </section>
+
+    <div id="boardView">
+      <section class="toolbar" aria-label="Filter tickets">
+        <div class="search">
+          <label class="sr" for="search">Search tickets</label>
+          <input type="search" id="search" placeholder="Search serial, customer, alarm, problem">
+          <kbd>/</kbd>
+        </div>
+        <div class="chips" id="priChips" role="group" aria-label="Priority filter"></div>
+        <label class="sr" for="areaFilter">Fault area</label>
+        <select id="areaFilter"></select>
+        <button type="button" class="chip-btn" id="mineBtn" aria-pressed="false">My tickets</button>
+        <span id="machineFilter"></span>
+      </section>
+
+      <div class="lane-tabs" id="laneTabs" role="tablist" aria-label="Lanes"></div>
+
+      <section class="board" id="board" aria-label="Ticket board"></section>
+    </div>
+
+    <div id="insightsView" hidden>
+      <div class="ins-head">
+        <h2>Insights</h2>
+        <div class="seg" id="rangeSeg" role="group" aria-label="Time range">
+          <button type="button" data-range="7">7 days</button>
+          <button type="button" data-range="30">30 days</button>
+          <button type="button" data-range="90">90 days</button>
+        </div>
+      </div>
+      <div id="insBody"></div>
+    </div>
+  </div>
+</main>
+
+<button type="button" class="btn primary fab" id="fab" hidden>+ New ticket</button>
+
+<div class="dropbar" id="dropbar" aria-hidden="true">
+  <div data-drop="in_progress">In progress</div>
+  <div data-drop="queued">Next up</div>
+  <div data-drop="waiting">On hold</div>
+  <div data-drop="done">Done</div>
+</div>
+
+<datalist id="serialList"></datalist>
+
+<!-- Sign in -->
+<dialog class="dlg narrow" id="authDlg" aria-labelledby="authTitle">
+  <form class="dlg-body" id="authForm" novalidate>
+    <div class="dlg-head"><h2 id="authTitle">Sign in</h2><button type="button" class="x" data-close aria-label="Close">&times;</button></div>
+    <label class="field" id="authNameRow" hidden><span>Your name</span><input type="text" id="authName" autocomplete="name"></label>
+    <label class="field"><span>Email</span><input type="email" id="authEmail" autocomplete="email" inputmode="email"></label>
+    <label class="field"><span>Password</span><input type="password" id="authPass" autocomplete="current-password"></label>
+    <p class="form-error" id="authError" role="alert" hidden></p>
+    <button class="btn primary block" type="submit" id="authSubmit">Sign in</button>
+    <button class="btn block" type="button" id="googleBtn">Continue with Google</button>
+    <div class="auth-links">
+      <button type="button" class="link" id="authToggle">Create an account</button>
+      <button type="button" class="link" id="authReset">Reset password</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Account -->
+<dialog class="dlg narrow" id="acctDlg" aria-labelledby="acctTitle">
+  <div class="dlg-body" id="acctBody"></div>
+</dialog>
+
+<!-- New ticket -->
+<dialog class="dlg narrow-ish" id="newDlg" aria-labelledby="newTitle">
+  <form class="dlg-body" id="newForm">
+    <div class="dlg-head">
+      <div><h2 id="newTitle">New ticket</h2><span class="loadchip" id="loadChip"></span></div>
+      <button type="button" class="x" data-close aria-label="Close">&times;</button>
+    </div>
+
+    <label class="field"><span>Machine serial no.</span><input type="text" name="machineSerial" maxlength="60" list="serialList" autocomplete="off" autocapitalize="characters" required></label>
+    <p class="seen" id="serialSeen" hidden></p>
+    <label class="field"><span>Customer or company</span><input type="text" name="customer" maxlength="100" required></label>
+    <label class="field"><span>What is the problem?</span><textarea name="problem" rows="3" maxlength="1000" required placeholder="For example: Axis 3 drive fault after power cycle. Machine will not home."></textarea></label>
+
+    <div class="field"><span>Priority</span><div class="pick" id="prioPick"></div><div id="prioNote"></div></div>
+
+    <div class="grid2">
+      <label class="field"><span>How can the engineer connect?</span><select name="method" id="methodSel"></select></label>
+      <label class="field"><span>Connection details <em>(ID, password, IP)</em></span><input type="text" name="connDetails" class="mono" maxlength="1000" autocomplete="off"></label>
+    </div>
+    <p class="hint">Connection details are visible only to the engineer and to you.</p>
+    <p class="who" id="whoLine"></p>
+
+    <p class="form-error" id="newError" role="alert" hidden></p>
+    <div class="dlg-foot">
+      <span></span>
+      <div class="right">
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="submit" class="btn primary" id="newSubmit">Submit ticket</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Ticket detail -->
+<dialog class="dlg" id="detailDlg" aria-labelledby="detailTitle">
+  <div class="dlg-body" id="detailBody"></div>
+</dialog>
+
+<!-- Close ticket -->
+<dialog class="dlg narrow" id="resolveDlg" aria-labelledby="resolveTitle">
+  <form class="dlg-body" method="dialog">
+    <div class="dlg-head"><h2 id="resolveTitle">Close ticket</h2></div>
+    <p class="hint" id="resolveFor"></p>
+    <label class="field"><span>Where was the fault?</span><select id="resolveArea" required></select></label>
+    <label class="field"><span>What fixed it? <em>(optional)</em></span><textarea id="resolveText" rows="4" maxlength="1000"></textarea></label>
+    <div class="dlg-foot"><button class="btn" value="cancel" formnovalidate>Cancel</button><div class="right"><button class="btn ok" value="ok">Mark as done</button></div></div>
+  </form>
+</dialog>
+
+<!-- Switch focus -->
+<dialog class="dlg narrow" id="switchDlg" aria-labelledby="switchTitle">
+  <form class="dlg-body" method="dialog">
+    <div class="dlg-head"><h2 id="switchTitle">Already working on another ticket</h2></div>
+    <p id="switchText"></p>
+    <button class="btn primary block" value="swap">Hold the others and start this one</button>
+    <button class="btn block" value="both">Work on both</button>
+    <button class="btn block" value="">Cancel</button>
+  </form>
+</dialog>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script type="text/plain" id="rulesText">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    function isOwner() {
+      return signedIn() && resource.data.requesterUid == request.auth.uid;
+    }
+    function str(v, min, max) {
+      return v is string && v.size() >= min && v.size() <= max;
+    }
+    function openStatus(s) {
+      return s in ['queued', 'in_progress', 'waiting'];
+    }
+
+    // Engineers: add a document here in the Firebase console, ID = the person's user ID.
+    match /admins/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Availability message and lamp state.
+    match /settings/{name} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // Running ticket number. Can only count up by one.
+    match /counters/{name} {
+      allow read: if signedIn();
+      allow create: if signedIn() && name == 'tickets'
+        && request.resource.data.keys().hasOnly(['next'])
+        && request.resource.data.next == 1;
+      allow update: if signedIn() && name == 'tickets'
+        && request.resource.data.keys().hasOnly(['next'])
+        && request.resource.data.next == resource.data.next + 1;
+    }
+
+    match /tickets/{ticketId} {
+      // Everyone signed in can see the queue.
+      // To make the board public, change this to: allow read: if true;
+      allow read: if signedIn();
+
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly([
+          'ticketNo', 'machineSerial', 'machineModel', 'controller', 'alarm',
+          'customer', 'requesterName', 'contact', 'requesterUid', 'category',
+          'faultArea', 'impact', 'tags', 'priority', 'machineDown', 'problem',
+          'details', 'links', 'availability', 'status', 'createdAt', 'startedAt',
+          'completedAt', 'lastStartedAt', 'workMs', 'assignedTo', 'resolution', 'history'])
+        && request.resource.data.requesterUid == request.auth.uid
+        && request.resource.data.status == 'queued'
+        && request.resource.data.priority in ['critical', 'high', 'medium', 'low']
+        && request.resource.data.category in ['remote', 'breakdown', 'project', 'modification', 'question']
+        && str(request.resource.data.machineSerial, 1, 60)
+        && str(request.resource.data.customer, 1, 100)
+        && str(request.resource.data.problem, 1, 140)
+        && str(request.resource.data.requesterName, 1, 80)
+        && str(request.resource.data.contact, 1, 120)
+        && str(request.resource.data.details, 0, 4000)
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if isAdmin() || (isOwner() && (
+        // add a note to an open ticket
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['history'])
+          && openStatus(resource.data.status)
+          && request.resource.data.history.size() <= 200)
+        ||
+        // cancel a ticket that has not been started
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'history', 'completedAt'])
+          && resource.data.status == 'queued'
+          && request.resource.data.status == 'cancelled')
+      ));
+
+      allow delete: if isAdmin();
+
+      // Connection details: only the engineer and the requester can read them.
+      match /private/{docId} {
+        allow read: if isAdmin() ||
+          (signedIn() && resource.data.requesterUid == request.auth.uid);
+        allow create: if signedIn()
+          && request.resource.data.requesterUid == request.auth.uid
+          && str(request.resource.data.method, 1, 80)
+          && str(request.resource.data.details, 0, 1000);
+        allow update, delete: if isAdmin();
+      }
+    }
+  }
+}
+</script>
+<script type="module">
+/* ======================================================================
+   SUPPORT QUEUE  -  one-file ticket board for an automation engineer
+   1) Replace the values in FIREBASE_CONFIG below with your own.
+   2) Open this file in a browser, or upload it as index.html to a host.
+   ====================================================================== */
+ 
+ const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDGlm2EZHJMB0o5NSPIkg3BHWp-k73oa08",
+  authDomain: "automation-support-d8d83.firebaseapp.com",
+  databaseURL: "https://automation-support-d8d83-default-rtdb.firebaseio.com",
+  projectId: "automation-support-d8d83",
+  storageBucket: "automation-support-d8d83.firebasestorage.app",
+  messagingSenderId: "918717923361",
+  appId: "1:918717923361:web:3d549b245940e0572de360",
+  measurementId: "G-0GRMMC9CTH"
+};
+const APP_TITLE = "Automation support queue";
+const FIREBASE_VERSION = "10.14.1";
+
+/* ---------------------------------------------------------------------- */
+/* Vocabulary                                                              */
+/* ---------------------------------------------------------------------- */
+const PRI = {
+  critical: { label: "Critical", hint: "Machine stopped, production down", rank: 0, slaMin: 60,   slaText: "1 h",    color: "var(--crit)" },
+  high:     { label: "High",     hint: "Production affected or scrap risk", rank: 1, slaMin: 240,  slaText: "4 h",    color: "var(--high)" },
+  medium:   { label: "Medium",   hint: "Running with a workaround",         rank: 2, slaMin: 1440, slaText: "1 day",  color: "var(--med)" },
+  low:      { label: "Low",      hint: "Question or planned work",          rank: 3, slaMin: 4320, slaText: "3 days", color: "var(--low)" }
+};
+const CATEGORIES = {
+  remote: "Remote support", breakdown: "Machine breakdown", project: "New machine or project",
+  modification: "Modification", question: "Question"
+};
+const FAULT_AREAS = ["Mechanical", "Electrical", , "software", "Operator",  "Components Broken", "Not sure"];
+const METHODS = ["TeamViewer", "AnyDesk", "VPN", "Remote desktop (RDP)", "Remote access gateway (Ewon, cloud portal)", "On-site visit", "Other"];
+const STATUS_LABEL = { queued: "In line", in_progress: "In progress", waiting: "On hold", done: "Done", cancelled: "Cancelled" };
+const OPEN = ["queued", "in_progress", "waiting"];
+const LANES = [
+  { id: "in_progress", title: "In progress", empty: "Nothing in progress." },
+  { id: "queued",      title: "Next up",     empty: "The line is empty. Select New ticket to add a request." },
+  { id: "waiting",     title: "On hold",     empty: "Nothing on hold." },
+  { id: "done",        title: "Done",        empty: "Closed tickets show up here." }
+];
+
+/* ---------------------------------------------------------------------- */
+/* Helpers                                                                 */
+/* ---------------------------------------------------------------------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const ms = (v) => (v == null ? null : typeof v === "number" ? v : v.toMillis ? v.toMillis() : null);
+const ticketNo = (t) => "T-" + String(t.ticketNo ?? 0).padStart(4, "0");
+const serialKey = (s) => String(s || "").trim().toLowerCase();
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch { /* storage blocked */ } },
+  del(k) { try { localStorage.removeItem(k); } catch { /* storage blocked */ } }
+};
+function rel(value) {
+  const t = ms(value);
+  if (!t) return "";
+  const m = Math.max(0, Math.round((Date.now() - t) / 60000));
+  if (m < 1) return "just now";
+  if (m < 60) return m + " min ago";
+  const h = Math.round(m / 60);
+  return h < 24 ? h + " h ago" : Math.round(h / 24) + " d ago";
+}
+function dur(msec) {
+  const m = Math.max(0, Math.round(msec / 60000));
+  if (m < 60) return m + " min";
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + " h " + String(m % 60).padStart(2, "0") + " min";
+  return Math.floor(h / 24) + " d " + (h % 24) + " h";
+}
+const fmtDate = (v) => { const t = ms(v); return t ? new Date(t).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : ""; };
+function median(arr) {
+  if (!arr.length) return null;
+  const s = [...arr].sort((a, b) => a - b), mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+}
+function toast(text, isError = false) {
+  const el = document.createElement("div");
+  el.className = "toast" + (isError ? " err" : "");
+  el.textContent = text;
+  $("#toasts").append(el);
+  setTimeout(() => el.remove(), isError ? 7000 : 3200);
+}
+function friendlyError(err) {
+  const code = err?.code || "";
+  if (code.includes("permission-denied")) return "You don't have permission for that. If you just set this up, check that the security rules are published.";
+  if (code.includes("unavailable") || code.includes("network")) return "Can't reach the server. Check your connection and try again.";
+  if (code.includes("invalid-credential") || code.includes("wrong-password") || code.includes("user-not-found")) return "Email or password is wrong.";
+  if (code.includes("email-already-in-use")) return "An account with this email already exists. Sign in instead.";
+  if (code.includes("weak-password")) return "Use a password with at least 6 characters.";
+  if (code.includes("invalid-email")) return "Enter a valid email address.";
+  if (code.includes("popup-closed") || code.includes("cancelled-popup")) return "The Google window was closed before signing in.";
+  if (code.includes("too-many-requests")) return "Too many attempts. Wait a few minutes and try again.";
+  if (code.includes("operation-not-allowed")) return "This sign-in method is not turned on in Firebase Authentication.";
+  if (code.includes("unauthorized-domain")) return "This web address is not in Firebase Authentication, Authorized domains.";
+  return err?.message || "Something went wrong. Try again.";
+}
+async function copyText(text, label = "Copied") {
+  try { await navigator.clipboard.writeText(text); }
+  catch {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.append(ta); ta.select();
+    try { document.execCommand("copy"); } catch { /* ignore */ }
+    ta.remove();
+  }
+  toast(label);
+}
+function beep() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new Ctx(), o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "sine"; o.frequency.value = 880; g.gain.value = 0.08;
+    o.connect(g); g.connect(ctx.destination); o.start();
+    setTimeout(() => { o.stop(); ctx.close(); }, 220);
+  } catch { /* audio blocked */ }
+  try { navigator.vibrate?.(200); } catch { /* no vibration */ }
+}
+const small = () => matchMedia("(max-width: 760px)").matches;
+function durS(msec) {
+  const sec = Math.max(0, Math.floor(msec / 1000)), h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), x = sec % 60;
+  return h ? `${h}h ${String(m).padStart(2, "0")}m ${String(x).padStart(2, "0")}s` : m ? `${m}m ${String(x).padStart(2, "0")}s` : `${x}s`;
+}
+setInterval(() => {
+  for (const el of document.querySelectorAll("[data-tick]")) {
+    const st = +el.dataset.tick, base = +el.dataset.base || 0;
+    el.textContent = durS(base + (st ? Date.now() - st : 0));
+  }
+}, 1000);
+
+/* ---------------------------------------------------------------------- */
+/* State                                                                   */
+/* ---------------------------------------------------------------------- */
+let F = null, auth = null, db = null, ready = false;
+let user = null, isAdmin = false, tickets = [], status = {};
+let unsubT = null, unsubS = null, firstLoad = true;
+let openId = null, openSig = "";
+let view = "board", activeLane = null, range = 30;
+let authMode = "signin", wizStep = 1, prioTouched = false;
+let soundOn = store.get("sq.sound", "0") === "1";
+const filters = { q: "", pri: new Set(), area: "", mine: false, machine: "" };
+const myName = () => user?.displayName || user?.email || "Someone";
+
+/* ---------------------------------------------------------------------- */
+/* Static UI (works before Firebase is connected)                          */
+/* ---------------------------------------------------------------------- */
+document.title = APP_TITLE;
+$("#appTitle").textContent = APP_TITLE;
+
+function setTheme(t) {
+  document.documentElement.dataset.theme = t;
+  store.set("sq.theme", t);
+  $('meta[name="theme-color"]').content = t === "light" ? "#f6f8f5" : "#0e151b";
+}
+$("#themeBtn").onclick = () => setTheme(document.documentElement.dataset.theme === "light" ? "dark" : "light");
+setTheme(document.documentElement.dataset.theme || "dark");
+
+function showScreen(name) {
+  for (const id of ["loading", "fatal", "setup", "gate", "appView"]) $("#" + id).hidden = id !== name;
+}
+function fatal(message, detail = "") {
+  $("#fatalText").textContent = message;
+  $("#fatalDetail").textContent = detail;
+  $("#fatalDetail").hidden = !detail;
+  $("#fatalCopy").hidden = !detail;
+  showScreen("fatal");
+  console.error("[support-queue]", message, detail);
+}
+$("#fatalCopy").onclick = () => copyText(`${$("#fatalText").textContent}\n${$("#fatalDetail").textContent}\n${navigator.userAgent}`, "Error details copied");
+// Never stay on "Loading..." silently: show whatever went wrong.
+window.addEventListener("error", (e) => { if (!$("#loading").hidden) fatal("The page hit an error while starting.", `${e.message}${e.filename ? "\n" + e.filename + ":" + e.lineno : ""}`); });
+window.addEventListener("unhandledrejection", (e) => { if (!$("#loading").hidden) fatal("The page hit an error while starting.", String(e.reason?.stack || e.reason?.message || e.reason)); });
+setTimeout(() => {
+  if ($("#loading").hidden) return;
+  fatal("Still connecting after 12 seconds.",
+    "Likely causes:\n" +
+    "- No internet, or a firewall, VPN or ad blocker is blocking www.gstatic.com or *.googleapis.com\n" +
+    "- A wrong value in FIREBASE_CONFIG (apiKey, authDomain, projectId, appId)\n" +
+    "- The page was opened in a restricted browser window\n" +
+    "Open the browser console (F12) for the exact message.");
+}, 12000);
+
+// Board shell
+$("#board").innerHTML = LANES.map((l) => `
+  <div class="lane lane-${l.id}" data-lane="${l.id}" data-drop="${l.id}">
+    <h2>${l.title} <span class="count" id="count-${l.id}">0</span></h2>
+    <div class="lane-body" id="lane-${l.id}"></div>
+  </div>`).join("");
+$("#laneTabs").innerHTML = LANES.map((l) =>
+  `<button type="button" role="tab" class="lane-tab" data-lane-tab="${l.id}" aria-selected="false">${l.title} <span class="count" id="tabcount-${l.id}">0</span></button>`).join("");
+$("#priChips").innerHTML = Object.entries(PRI).map(([k, p]) =>
+  `<button type="button" class="chip-btn" data-pri="${k}" aria-pressed="false"><span class="sw" style="background:${p.color}"></span>${p.label}</button>`).join("");
+$("#areaFilter").innerHTML = `<option value="">Any fault area (set when closed)</option>` + FAULT_AREAS.map((a) => `<option>${esc(a)}</option>`).join("");
+$("#resolveArea").innerHTML = `<option value="">Select where the fault was</option>` + FAULT_AREAS.map((a) => `<option>${esc(a)}</option>`).join("");
+$("#methodSel").innerHTML = METHODS.map((m) => `<option>${esc(m)}</option>`).join("");
+$("#prioPick").innerHTML = Object.entries(PRI).map(([k, p]) =>
+  `<label class="p-${k}"><input type="radio" name="priority" value="${k}" ${k === "medium" ? "checked" : ""}><span><b>${p.label}</b><small>${p.hint}. Reply target ${p.slaText}.</small></span></label>`).join("");
+
+function setView(v) {
+  view = v;
+  $("#boardView").hidden = v !== "board";
+  $("#insightsView").hidden = v !== "insights";
+  $$("#nav button").forEach((b) => b.setAttribute("aria-current", b.dataset.view === v ? "page" : "false"));
+  if (v === "insights") renderInsights();
+  window.scrollTo({ top: 0 });
+}
+$("#nav").addEventListener("click", (e) => { const b = e.target.closest("[data-view]"); if (b) setView(b.dataset.view); });
+$("#rangeSeg").addEventListener("click", (e) => { const b = e.target.closest("[data-range]"); if (b) { range = +b.dataset.range; renderInsights(); } });
+
+$("#laneTabs").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-lane-tab]");
+  if (b) { activeLane = b.dataset.laneTab; applyLane(); }
+});
+function applyLane() {
+  $$(".lane").forEach((l) => l.classList.toggle("active", l.dataset.lane === activeLane));
+  $$("#laneTabs [data-lane-tab]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.laneTab === activeLane)));
+}
+
+// Filters
+$("#search").addEventListener("input", (e) => { filters.q = e.target.value; renderBoard(); });
+$("#areaFilter").addEventListener("change", (e) => { filters.area = e.target.value; renderBoard(); });
+$("#mineBtn").addEventListener("click", (e) => {
+  filters.mine = !filters.mine;
+  e.currentTarget.setAttribute("aria-pressed", String(filters.mine));
+  renderBoard();
+});
+$("#priChips").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-pri]");
+  if (!b) return;
+  filters.pri.has(b.dataset.pri) ? filters.pri.delete(b.dataset.pri) : filters.pri.add(b.dataset.pri);
+  syncPriChips();
+  renderBoard();
+});
+function syncPriChips() {
+  $$("#priChips [data-pri]").forEach((b) => b.setAttribute("aria-pressed", String(filters.pri.has(b.dataset.pri))));
+}
+function setMachineFilter(serial) {
+  filters.machine = serialKey(serial);
+  const shown = tickets.find((t) => serialKey(t.machineSerial) === filters.machine)?.machineSerial || serial;
+  $("#machineFilter").innerHTML = serial
+    ? `<span class="mfilter">Machine <span class="mono">${esc(shown)}</span><button type="button" data-clear-machine aria-label="Clear machine filter">&times;</button></span>`
+    : "";
+  if ($("#detailDlg").open) $("#detailDlg").close();
+  setView("board");
+  renderBoard();
+}
+
+// Generic dialog closing (buttons and backdrop)
+document.addEventListener("click", (e) => {
+  const closer = e.target.closest("[data-close]");
+  if (closer) closer.closest("dialog").close();
+  else if (e.target instanceof HTMLDialogElement && e.target.id !== "resolveDlg" && e.target.id !== "switchDlg") e.target.close();
+});
+
+// Setup screen
+$("#rulesPre").textContent = $("#rulesText").textContent.trim();
+$("#copyRules").onclick = () => copyText($("#rulesText").textContent.trim(), "Security rules copied");
+
+/* ---------------------------------------------------------------------- */
+/* Start                                                                   */
+/* ---------------------------------------------------------------------- */
+async function start() {
+  try { await startInner(); }
+  catch (ex) { fatal("Couldn't start the app.", String(ex?.stack || ex?.message || ex)); }
+}
+
+async function startInner() {
+  const http = location.protocol.startsWith("http");
+  try {
+    const base = `https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/`;
+    const [a, b, c] = await Promise.all([import(base + "firebase-app.js"), import(base + "firebase-auth.js"), import(base + "firebase-firestore.js")]);
+    F = { ...a, ...b, ...c };
+  } catch {
+    $("#fatalText").textContent = "Firebase could not be loaded. Check your internet connection and reload the page.";
+    showScreen("fatal");
+    return;
+  }
+  const app = F.initializeApp(FIREBASE_CONFIG);
+  const persistence = [F.indexedDBLocalPersistence, F.browserLocalPersistence, F.browserSessionPersistence, F.inMemoryPersistence];
+  try { auth = F.initializeAuth(app, http ? { persistence, popupRedirectResolver: F.browserPopupRedirectResolver } : { persistence }); }
+  catch { auth = F.getAuth(app); }
+  try {
+    db = http
+      ? F.initializeFirestore(app, { localCache: F.persistentLocalCache({ tabManager: F.persistentMultipleTabManager() }) })
+      : F.getFirestore(app);
+  } catch { db = F.getFirestore(app); }
+  $("#googleBtn").hidden = !http;
+  ready = true;
+  F.onAuthStateChanged(auth, onAuth);
+}
+
+async function onAuth(u) {
+  user = u;
+  if (!u) {
+    isAdmin = false;
+    teardown();
+    showScreen("gate");
+    renderUser();
+    return;
+  }
+  try { isAdmin = (await F.getDoc(F.doc(db, "admins", u.uid))).exists(); } catch { isAdmin = false; }
+  showScreen("appView");
+  renderUser();
+  subscribe();
+}
+
+function teardown() {
+  unsubT?.(); unsubS?.();
+  unsubT = unsubS = null;
+  tickets = []; status = {}; firstLoad = true;
+  document.title = APP_TITLE;
+}
+
+function subscribe() {
+  teardown();
+  unsubT = F.onSnapshot(
+    F.query(F.collection(db, "tickets"), F.orderBy("createdAt", "desc"), F.limit(400)),
+    (snap) => {
+      if (!firstLoad && isAdmin) {
+        const fresh = snap.docChanges().filter((c) => c.type === "added" && !c.doc.metadata.hasPendingWrites && c.doc.data().requesterUid !== user.uid);
+        if (fresh.length) {
+          const d = fresh[0].doc.data({ serverTimestamps: "estimate" });
+          toast(`New ticket: ${d.problem}`);
+          if (soundOn) beep();
+        }
+      }
+      tickets = snap.docs.map((d) => ({ id: d.id, ...d.data({ serverTimestamps: "estimate" }) }));
+      renderAll();
+      if (openId) refreshDetail();
+      if (firstLoad) { firstLoad = false; checkHash(); }
+    },
+    (err) => toast("Can't load tickets. " + friendlyError(err), true)
+  );
+  unsubS = F.onSnapshot(
+    F.doc(db, "settings", "status"),
+    (s) => { status = s.exists() ? s.data() : {}; renderBand(); renderStateSeg(); },
+    () => {}
+  );
+}
+
+function renderUser() {
+  const signed = !!user;
+  $("#nav").hidden = !signed;
+  $("#newBtn").hidden = false;
+  $("#fab").hidden = false;
+  $("#userBtn").hidden = false;
+  $("#userBtn").innerHTML = signed ? `${esc(user.displayName || user.email || "Account")}${isAdmin ? ' <span class="badge">Engineer</span>' : ""}` : "Sign in";
+  $("#stateSeg").hidden = !isAdmin;
+  $("#msgEdit").hidden = !isAdmin;
+  $("#soundBtn").hidden = !isAdmin;
+  $("#soundBtn").setAttribute("aria-pressed", String(soundOn));
+}
+
+/* ---------------------------------------------------------------------- */
+/* Sign in                                                                 */
+/* ---------------------------------------------------------------------- */
+function openAuth(mode) {
+  setAuthMode(mode);
+  $("#authError").hidden = true;
+  $("#authDlg").showModal();
+}
+function setAuthMode(mode) {
+  authMode = mode;
+  const create = mode === "create";
+  $("#authTitle").textContent = create ? "Create account" : "Sign in";
+  $("#authSubmit").textContent = create ? "Create account" : "Sign in";
+  $("#authToggle").textContent = create ? "I already have an account" : "Create an account";
+  $("#authNameRow").hidden = !create;
+  $("#authPass").autocomplete = create ? "new-password" : "current-password";
+}
+$("#gateBtn").onclick = () => openAuth("signin");
+$("#authToggle").onclick = () => setAuthMode(authMode === "signin" ? "create" : "signin");
+$("#authForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const err = $("#authError");
+  err.hidden = true;
+  const email = $("#authEmail").value.trim(), pass = $("#authPass").value, name = $("#authName").value.trim();
+  if (!email || !pass) { err.textContent = "Enter your email and password."; err.hidden = false; return; }
+  if (authMode === "create" && !name) { err.textContent = "Enter your name so the engineer knows who you are."; err.hidden = false; return; }
+  $("#authSubmit").disabled = true;
+  try {
+    if (authMode === "create") {
+      const cred = await F.createUserWithEmailAndPassword(auth, email, pass);
+      await F.updateProfile(cred.user, { displayName: name });
+      user = auth.currentUser;
+      renderUser();
+    } else {
+      await F.signInWithEmailAndPassword(auth, email, pass);
+    }
+    $("#authDlg").close();
+  } catch (ex) { err.textContent = friendlyError(ex); err.hidden = false; }
+  finally { $("#authSubmit").disabled = false; }
+});
+$("#googleBtn").onclick = async () => {
+  try { await F.signInWithPopup(auth, new F.GoogleAuthProvider()); $("#authDlg").close(); }
+  catch (ex) { $("#authError").textContent = friendlyError(ex); $("#authError").hidden = false; }
+};
+$("#authReset").onclick = async () => {
+  const email = $("#authEmail").value.trim(), err = $("#authError");
+  if (!email) { err.textContent = "Enter your email above, then select Reset password."; err.hidden = false; return; }
+  try { await F.sendPasswordResetEmail(auth, email); err.hidden = true; toast("Password reset email sent to " + email); }
+  catch (ex) { err.textContent = friendlyError(ex); err.hidden = false; }
+};
+
+$("#userBtn").onclick = () => { if (!user) { if (ready) openAuth("signin"); return; } openAccount(); };
+function openAccount() {
+  $("#acctBody").innerHTML = `
+    <div class="dlg-head"><h2>Account</h2><button type="button" class="x" data-close aria-label="Close">&times;</button></div>
+    <dl class="facts" style="grid-template-columns:1fr">
+      <div><dt>Name</dt><dd>${esc(user.displayName || "Not set")}</dd></div>
+      <div><dt>Email</dt><dd>${esc(user.email || "")}</dd></div>
+      <div><dt>Role</dt><dd>${isAdmin ? "Engineer" : "Requester"}</dd></div>
+      <div><dt>User ID</dt><dd><span class="mono">${esc(user.uid)}</span> <button type="button" class="btn sm" data-copy="${esc(user.uid)}">Copy</button></dd></div>
+    </dl>
+    ${isAdmin ? "" : `<p class="hint">To make this account the engineer: in Firebase, Firestore Database, create a collection named <code>admins</code> and add a document whose ID is the user ID above. Then reload.</p>`}
+    <button type="button" class="btn block" id="signOutBtn">Sign out</button>`;
+  $("#signOutBtn").onclick = () => { $("#acctDlg").close(); F.signOut(auth); };
+  $("#acctDlg").showModal();
+}
+
+/* ---------------------------------------------------------------------- */
+/* Derived data                                                            */
+/* ---------------------------------------------------------------------- */
+const byPriorityThenAge = (a, b) =>
+  (PRI[a.priority]?.rank ?? 9) - (PRI[b.priority]?.rank ?? 9) || (ms(a.createdAt) ?? 0) - (ms(b.createdAt) ?? 0);
+
+function lists() {
+  return {
+    inProgress: tickets.filter((t) => t.status === "in_progress").sort((a, b) => (ms(a.startedAt) ?? 0) - (ms(b.startedAt) ?? 0)),
+    queued: tickets.filter((t) => t.status === "queued").sort(byPriorityThenAge),
+    waiting: tickets.filter((t) => t.status === "waiting").sort(byPriorityThenAge),
+    closed: tickets.filter((t) => t.status === "done" || t.status === "cancelled")
+      .sort((a, b) => (ms(b.completedAt) ?? ms(b.createdAt) ?? 0) - (ms(a.completedAt) ?? ms(a.createdAt) ?? 0))
+  };
+}
+function matches(t) {
+  if (filters.pri.size && !filters.pri.has(t.priority)) return false;
+  if (filters.area && t.faultArea !== filters.area) return false;
+  if (filters.mine && t.requesterUid !== user?.uid) return false;
+  if (filters.machine && serialKey(t.machineSerial) !== filters.machine) return false;
+  const q = filters.q.trim().toLowerCase();
+  if (!q) return true;
+  return [ticketNo(t), t.machineSerial, t.machineModel, t.controller, t.alarm, t.customer, t.problem, t.requesterName, (t.tags || []).join(" ")]
+    .some((v) => String(v || "").toLowerCase().includes(q));
+}
+function repeatMap() {
+  const m = new Map(), from = Date.now() - 30 * 864e5;
+  for (const t of tickets) if ((ms(t.createdAt) || 0) >= from) m.set(serialKey(t.machineSerial), (m.get(serialKey(t.machineSerial)) || 0) + 1);
+  return m;
+}
+function sla(t) {
+  const p = PRI[t.priority] || PRI.medium, total = p.slaMin * 60000, created = ms(t.createdAt);
+  if (!created || t.status !== "queued" || t.startedAt) return null;
+  const left = created + total - Date.now();
+  const used = Math.min(1, Math.max(0, 1 - left / total));
+  return {
+    cls: left < 0 ? "late" : used > 0.75 ? "warn" : "ok",
+    pct: Math.round(used * 100),
+    text: left < 0 ? `Overdue by ${dur(-left)}` : `Reply within ${dur(left)}`
+  };
+}
+const handsOn = (t) => (t.workMs || 0) + (t.status === "in_progress" && t.lastStartedAt ? Date.now() - t.lastStartedAt : 0);
+
+/* ---------------------------------------------------------------------- */
+/* Rendering: band, board                                                  */
+/* ---------------------------------------------------------------------- */
+function renderAll() {
+  renderBand();
+  renderBoard();
+  if (view === "insights") renderInsights();
+  const q = tickets.filter((t) => t.status === "queued").length;
+  document.title = (isAdmin && q ? `(${q}) ` : "") + APP_TITLE;
+  $("#serialList").innerHTML = [...new Set(tickets.map((t) => t.machineSerial))].slice(0, 80).map((s) => `<option value="${esc(s)}">`).join("");
+}
+
+/* ---- workload and advice ---- */
+function workload() {
+  const L = lists();
+  const active = L.inProgress.length, q = L.queued.length;
+  const crit = L.queued.filter((t) => t.priority === "critical").length;
+  const critActive = L.inProgress.some((t) => t.priority === "critical");
+  let level = "light";
+  if (active >= 2 || q >= 5 || (active >= 1 && crit >= 1) || critActive) level = "heavy";
+  else if (active >= 1 || q >= 2) level = "moderate";
+  if (status.state === "away") level = "away";
+  return { level, active, q, crit, critActive, L };
+}
+const LOAD_LABEL = { light: "Light workload", moderate: "Moderate workload", heavy: "Heavy workload", away: "Engineer away" };
+function typicalWork() {
+  const from = Date.now() - 60 * 864e5;
+  const m = median(tickets.filter((t) => t.status === "done" && (t.workMs || 0) > 0 && (ms(t.completedAt) || 0) > from).map((t) => t.workMs));
+  return Math.min(4 * 3600e3, Math.max(10 * 60e3, m ?? 30 * 60e3));
+}
+function advice(pk) {
+  const w = workload(), rank = PRI[pk].rank;
+  const rk = (t) => PRI[t.priority]?.rank ?? 9;
+  const ahead = w.L.queued.filter((t) => rk(t) <= rank).length;
+  const moreUrgent = w.L.queued.filter((t) => rk(t) < rank).length;
+  const pos = ahead + 1;
+  const lines = [];
+  if (status.message) lines.push({ kind: "info", text: `Engineer's note: ${status.message}` });
+  if (w.level === "away") lines.push({ kind: "warn", text: "The engineer is away. Your ticket is saved and will be handled when they are back." });
+  else if (w.level === "heavy") lines.push({ kind: "warn", text: `Heavy workload now: ${w.active} job${w.active === 1 ? "" : "s"} in progress and ${w.q} waiting${w.crit ? `, ${w.crit} critical` : ""}. Expect a longer wait than usual.` });
+  else if (w.level === "moderate") lines.push({ kind: "info", text: `Moderate workload: ${w.active} in progress, ${w.q} waiting.` });
+  else lines.push({ kind: "ok", text: "Light workload. New tickets are picked up quickly." });
+  const urgent = [];
+  if (w.critActive && pk !== "critical") urgent.push("A critical job is in progress");
+  if (moreUrgent > 0) urgent.push(`${moreUrgent} more urgent ticket${moreUrgent === 1 ? " is" : "s are"} ahead of yours`);
+  if (urgent.length) lines.push({ kind: "warn", text: urgent.join(" and ") + ". Less urgent tickets wait until they are done." });
+  if (pk === "critical") lines.push({ kind: "info", text: "Use Critical only if the machine is stopped and production is down." });
+  else if (pk === "low") lines.push({ kind: "info", text: "Low priority waits for all more urgent work." });
+  if (w.level !== "away") {
+    const waitMs = (ahead + w.active * 0.5) * typicalWork();
+    const wait = waitMs < 10 * 60e3 ? "less than 10 minutes" : "about " + dur(Math.round(waitMs / 300000) * 300000);
+    lines.push({ kind: "info", text: pos === 1 && w.active === 0 ? "You would be next in line." : `Place in line: #${pos}. Rough wait before work starts: ${wait}.` });
+  } else lines.push({ kind: "info", text: `Place in line: #${pos}.` });
+  return { level: w.level, label: LOAD_LABEL[w.level], lines };
+}
+
+/* ---- "currently working on" panel ---- */
+const privCache = new Map();
+let secretShown = false, secretFor = null, heroMain = null;
+
+function renderBand() {
+  const w = workload(), L = w.L;
+  const act = [...L.inProgress].sort(byPriorityThenAge);
+  const main = act[0] || null;
+  const away = status.state === "away";
+  const mode = main ? "active" : away ? "away" : "free";
+  const hero = $("#hero");
+  hero.dataset.mode = mode;
+  hero.dataset.pri = main?.priority || "";
+  heroMain = main;
+  if (main && secretFor !== main.id) { secretShown = false; secretFor = main.id; }
+
+  $("#heroCount").textContent = main ? `Active · ${act.length}` : away ? "Away" : "Available";
+  const urgent = main && (main.priority === "critical" || main.machineDown);
+  $("#heroUrgent").hidden = !urgent;
+  $("#heroUrgent").textContent = main?.machineDown ? "Urgent · machine stopped" : "Urgent";
+  $("#heroLoad").textContent = LOAD_LABEL[w.level];
+  $("#heroLoad").dataset.level = w.level;
+
+  const body = $("#heroBody");
+  if (main) {
+    const p = PRI[main.priority] || PRI.medium;
+    const started = ms(main.startedAt);
+    const text = main.details || main.problem;
+    const also = act.slice(1);
+    const tick = `data-tick="${main.lastStartedAt || 0}" data-base="${main.workMs || 0}"`;
+    body.innerHTML = `
+      <div class="hero-card">
+        <div class="hero-main">
+          <div class="hm-top">
+            ${urgent ? '<span class="hbadge urgent">Urgent</span>' : ""}
+            <span class="hbadge pri p-${esc(main.priority)}">${p.label}</span>
+            <span class="hchip mono">${ticketNo(main)}</span>
+            <span class="live"><i></i>Live${started ? " since " + new Date(started).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}</span>
+            <span class="elapsed"><small>Elapsed</small><b ${tick}>${durS(handsOn(main))}</b></span>
+          </div>
+          <h3 class="hm-title">${esc(main.problem)}</h3>
+          <div class="hm-chips">
+            <button type="button" class="hchip mono" data-machine="${esc(main.machineSerial)}" title="Show all tickets for this machine">${esc(main.machineSerial)}</button>
+            <span class="hchip">${esc(main.customer)}</span>
+            <span class="hchip">${esc(main.requesterName)}</span>
+          </div>
+          ${text ? `<div class="hm-desc">${esc(text)}</div>` : ""}
+          <div class="hm-actions">
+            ${isAdmin
+              ? `<button type="button" class="btn ok" data-quick="done" data-id="${main.id}">Mark as done</button><button type="button" class="btn" data-quick="hold" data-id="${main.id}">Put on hold</button>`
+              : `<span class="viewer-note">Viewer mode · read only</span>`}
+            <button type="button" class="btn" data-open="${main.id}">Details and history</button>
+          </div>
+          ${also.length ? `<div class="hm-also"><span>Also active:</span>${also.map((t) => `<button type="button" class="hchip" data-open="${t.id}"><span class="mono">${ticketNo(t)}</span> ${esc(t.problem)}</button>`).join("")}</div>` : ""}
+          ${act.length >= 2 ? `<p class="hm-warn">Working on ${act.length} tickets at the same time. New requests will wait longer.</p>` : ""}
+        </div>
+        <aside class="hero-side" id="heroConn" data-id="${main.id}"></aside>
+      </div>`;
+    renderHeroConn(main);
+  } else {
+    const next = L.queued[0];
+    body.innerHTML = `
+      <div class="hero-free">
+        <span class="free-dot" aria-hidden="true"></span>
+        <div>
+          <p class="free-title">${away ? "Away" : "Available"}</p>
+          <p class="free-sub">${away ? "Not taking requests right now. New tickets are still saved in line." : "No active job right now. The next ticket in line will be started soon."}</p>
+          ${next ? `<button type="button" class="hchip nextup" data-open="${next.id}">Next up: <span class="mono">${ticketNo(next)}</span> ${esc(next.problem)}</button>` : ""}
+        </div>
+      </div>`;
+  }
+
+  // always-visible availability pill in the top bar
+  const pill = $("#availPill");
+  pill.hidden = !user;
+  const busy = !!main || status.state === "busy";
+  pill.className = "avail " + (away ? "away" : busy ? "busy" : "free");
+  pill.innerHTML = away
+    ? `<i></i><span><b>Away</b></span>`
+    : main
+      ? `<i></i><span><b>Busy</b><span class="long"> on ${ticketNo(main)}</span></span><span class="tick" data-tick="${main.lastStartedAt || 0}" data-base="${main.workMs || 0}">${durS(handsOn(main))}</span>`
+      : busy ? `<i></i><span><b>Busy</b></span>` : `<i></i><span><b>Available</b></span>`;
+
+  $("#bandMsg").textContent = isAdmin ? "" : status.message || "";
+  if (isAdmin && document.activeElement !== $("#statusMsg")) $("#statusMsg").value = status.message || "";
+
+  const month = Date.now() - 30 * 864e5, week = Date.now() - 7 * 864e5;
+  const done = L.closed.filter((t) => t.status === "done");
+  const med = median(done.filter((t) => (ms(t.completedAt) ?? 0) > month && ms(t.createdAt)).map((t) => ms(t.completedAt) - ms(t.createdAt)));
+  $("#stats").innerHTML = `
+    <div><dt>In line</dt><dd>${L.queued.length}</dd></div>
+    <div><dt>In progress</dt><dd>${L.inProgress.length}</dd></div>
+    <div><dt>Closed in 7 days</dt><dd>${done.filter((t) => (ms(t.completedAt) ?? 0) > week).length}</dd></div>
+    <div><dt>Typical time to close</dt><dd>${med == null ? "&ndash;" : dur(med)}</dd></div>`;
+}
+
+async function renderHeroConn(t) {
+  const box = $("#heroConn");
+  if (!box) return;
+  const owner = !!user && t.requesterUid === user.uid;
+  const tiles = `<div class="conn-tiles">
+      <div class="conn-tile"><small>Requested by</small><b>${esc(t.requesterName)}</b><span class="mono">${fmtDate(t.createdAt)}</span></div>
+      <div class="conn-tile"><small>Progress history</small><b>${(t.history || []).length} events</b><span class="mono">${ticketNo(t)}</span></div>
+    </div>`;
+  const head = (all) => `<div class="conn-head"><span>Connection info</span>${all ? `<button type="button" class="btn sm" data-copy="${esc(all)}">Copy all</button>` : ""}</div>`;
+  if (!(isAdmin || owner)) {
+    box.innerHTML = head("") + `<p class="conn-locked">Connection details are private. Only the engineer and the person who opened the ticket can see them.</p>` + tiles;
+    return;
+  }
+  let priv = privCache.get(t.id);
+  if (priv === undefined) {
+    try { const s = await F.getDoc(F.doc(db, "tickets", t.id, "private", "connection")); priv = s.exists() ? s.data() : null; } catch { priv = null; }
+    privCache.set(t.id, priv);
+  }
+  if (!box.isConnected || box.dataset.id !== t.id) return;
+  if (!priv) { box.innerHTML = head("") + `<p class="conn-locked">No connection details were added to this ticket.</p>` + tiles; return; }
+  box.innerHTML = head(`${priv.method}: ${priv.details || ""}`.trim()) + `
+    <div class="conn-tile"><small>Method</small><b>${esc(priv.method)}</b></div>
+    <div class="conn-tile"><small>Access details</small>
+      <b class="mono secret-val">${priv.details ? (secretShown ? esc(priv.details) : "&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;") : "Not added"}</b>
+      ${priv.details ? `<div class="conn-actions"><button type="button" class="btn sm" data-reveal>${secretShown ? "Hide" : "Show"}</button><button type="button" class="btn sm" data-copy="${esc(priv.details)}">Copy</button></div>` : ""}
+    </div>` + tiles;
+}
+
+function renderStateSeg() {
+  $$("#stateSeg button, #stateSegMobile button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.state === status.state)));
+}
+
+function cardHtml(t, o = {}) {
+  const p = PRI[t.priority] || PRI.medium;
+  const mine = user && t.requesterUid === user.uid;
+  const s = sla(t);
+  const repN = o.rep?.get(serialKey(t.machineSerial)) || 0;
+  const tags = (t.tags || []).slice(0, 3).map((x) => `<span class="tag">${esc(x)}</span>`).join("");
+  let quick = "";
+  if (isAdmin && !o.compact) {
+    const b = (act, label, cls = "") => `<button type="button" class="btn sm ${cls}" data-quick="${act}" data-id="${t.id}">${label}</button>`;
+    if (t.status === "queued") quick = b("start", "Start", "primary");
+    else if (t.status === "waiting") quick = b("start", "Resume", "primary") + b("done", "Done");
+    else if (t.status === "in_progress") quick = b("hold", "Hold") + b("done", "Done", "ok");
+  }
+  const foot = t.status === "in_progress"
+    ? `<span class="live">${dur(handsOn(t))} hands-on</span>`
+    : t.status === "done" || t.status === "cancelled"
+      ? `<span class="st-${t.status}">${STATUS_LABEL[t.status]}</span>`
+      : `<span>${rel(t.createdAt)}</span>`;
+  return `<article class="ticket p-${esc(t.priority)}${o.compact ? " compact" : ""}" data-id="${t.id}" data-open="${t.id}" tabindex="0" role="button" aria-label="${esc(ticketNo(t) + " " + t.problem)}">
+    <div class="t-top">
+      ${isAdmin && !o.compact ? '<span class="grip" title="Drag to move" aria-hidden="true"></span>' : ""}
+      <span class="t-no">${ticketNo(t)}</span><span class="prio">${p.label}</span>
+      ${t.machineDown ? '<span class="chip down">Stopped</span>' : ""}
+      ${repN >= 2 && !o.compact ? `<span class="chip rep" title="${repN} tickets on this machine in 30 days">Repeat &times;${repN}</span>` : ""}
+      ${o.pos ? `<span class="pos" title="Place in line">#${o.pos}</span>` : ""}
+    </div>
+    <h3 class="t-title">${esc(t.problem)}</h3>
+    <div class="t-meta">
+      <button type="button" class="serial" data-machine="${esc(t.machineSerial)}" title="Show all tickets for this machine">${esc(t.machineSerial)}</button>
+      ${t.alarm ? `<span class="alarm">${esc(t.alarm)}</span>` : ""}
+      ${o.compact ? "" : `<span>${esc(t.customer)}</span>`}
+    </div>
+    ${tags && !o.compact ? `<div class="tags">${tags}</div>` : ""}
+    ${s && !o.compact ? `<div class="sla ${s.cls}"><div class="sla-bar"><i style="width:${s.pct}%"></i></div><span>${s.text}</span></div>` : ""}
+    <div class="t-foot"><span>${esc(t.requesterName)}${mine ? ' <span class="me">(you)</span>' : ""}</span>${foot}</div>
+    ${quick ? `<div class="quick">${quick}</div>` : ""}
+  </article>`;
+}
+
+function renderBoard() {
+  if (drag?.active) return;
+  const L = lists();
+  const place = new Map(L.queued.map((t, i) => [t.id, i + 1]));
+  const rep = repeatMap();
+  const data = { in_progress: L.inProgress, queued: L.queued, waiting: L.waiting, done: L.closed.slice(0, 12) };
+  for (const lane of LANES) {
+    const items = data[lane.id].filter(matches);
+    $("#lane-" + lane.id).innerHTML = items.length
+      ? items.map((t) => cardHtml(t, { pos: lane.id === "queued" ? place.get(t.id) : 0, compact: lane.id === "done", rep })).join("")
+      : `<p class="empty">${lane.empty}</p>`;
+    $("#count-" + lane.id).textContent = data[lane.id].length;
+    $("#tabcount-" + lane.id).textContent = data[lane.id].length;
+  }
+  if (!activeLane) activeLane = L.inProgress.length ? "in_progress" : "queued";
+  applyLane();
+}
+setInterval(() => { if (user && ready) { renderBand(); renderBoard(); } }, 30000);
+
+/* Status switch and message (engineer) */
+$$("#stateSeg button, #stateSegMobile button").forEach((b) => {
+  b.onclick = async () => {
+    try { await F.setDoc(F.doc(db, "settings", "status"), { state: b.dataset.state, updatedAt: F.serverTimestamp() }, { merge: true }); }
+    catch (ex) { toast(friendlyError(ex), true); }
+  };
+});
+$("#statusMsg").addEventListener("change", async (e) => {
+  try { await F.setDoc(F.doc(db, "settings", "status"), { message: e.target.value.trim(), updatedAt: F.serverTimestamp() }, { merge: true }); toast("Status message saved"); }
+  catch (ex) { toast(friendlyError(ex), true); }
+});
+$("#soundBtn").onclick = () => {
+  soundOn = !soundOn;
+  store.set("sq.sound", soundOn ? "1" : "0");
+  $("#soundBtn").setAttribute("aria-pressed", String(soundOn));
+  toast(soundOn ? "Sound on. You will hear a beep for new tickets." : "Sound off");
+  if (soundOn) beep();
+};
+
+/* ---------------------------------------------------------------------- */
+/* Clicks: cards, quick actions, machine filter, copy                       */
+/* ---------------------------------------------------------------------- */
+let justDragged = false;
+document.addEventListener("click", (e) => {
+  if (justDragged) return;
+  const t = e.target;
+  const copy = t.closest("[data-copy]");
+  if (copy) { copyText(copy.dataset.copy); return; }
+  if (t.closest("[data-clear-machine]")) { setMachineFilter(""); return; }
+  const mach = t.closest("[data-machine]");
+  if (mach) { setMachineFilter(mach.dataset.machine); return; }
+  if (t.closest("[data-reveal]")) { secretShown = !secretShown; if (heroMain) renderHeroConn(heroMain); return; }
+  const cust = t.closest("[data-cust]");
+  if (cust) { filters.q = cust.dataset.cust; $("#search").value = cust.dataset.cust; setView("board"); renderBoard(); return; }
+  const area = t.closest("[data-area]");
+  if (area) { filters.area = area.dataset.area; $("#areaFilter").value = filters.area; setView("board"); renderBoard(); return; }
+  const pri = t.closest("[data-pri-go]");
+  if (pri) { filters.pri = new Set([pri.dataset.priGo]); syncPriChips(); setView("board"); renderBoard(); return; }
+  const quick = t.closest("[data-quick]");
+  if (quick) { const tk = tickets.find((x) => x.id === quick.dataset.id); if (tk) doAction(tk, quick.dataset.quick); return; }
+  const open = t.closest("[data-open]");
+  if (open) openDetail(open.dataset.open);
+});
+document.addEventListener("keydown", (e) => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches?.(".ticket")) { e.preventDefault(); openDetail(e.target.dataset.id); return; }
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target.closest?.("input, textarea, select") || document.querySelector("dialog[open]")) return;
+  if (!user) return;
+  if (e.key === "/") { e.preventDefault(); setView("board"); $("#search").focus(); }
+  else if (e.key === "n") { e.preventDefault(); openNew(); }
+  else if (e.key === "b") setView("board");
+  else if (e.key === "i") setView("insights");
+});
+
+/* ---------------------------------------------------------------------- */
+/* Drag and drop (engineer)                                                */
+/* ---------------------------------------------------------------------- */
+let drag = null;
+document.addEventListener("pointerdown", (e) => {
+  if (!isAdmin) return;
+  const card = e.target.closest(".ticket[data-id]");
+  if (!card) return;
+  const onGrip = !!e.target.closest(".grip");
+  if (!onGrip && (e.pointerType !== "mouse" || e.target.closest("button, a, input, select, textarea"))) return;
+  if (e.pointerType === "mouse" && e.button !== 0) return;
+  drag = { id: card.dataset.id, card, sx: e.clientX, sy: e.clientY, active: false, ghost: null, target: null, grip: onGrip };
+});
+document.addEventListener("pointermove", (e) => {
+  if (!drag) return;
+  if (!drag.active) {
+    if (Math.abs(e.clientX - drag.sx) + Math.abs(e.clientY - drag.sy) < (drag.grip ? 3 : 8)) return;
+    beginDrag();
+  }
+  e.preventDefault();
+  moveDrag(e);
+}, { passive: false });
+document.addEventListener("pointerup", endDrag);
+document.addEventListener("pointercancel", () => cleanupDrag());
+
+function beginDrag() {
+  drag.active = true;
+  const g = drag.card.cloneNode(true);
+  g.classList.add("ghost");
+  document.body.append(g);
+  drag.ghost = g;
+  drag.card.classList.add("is-dragging");
+  document.body.classList.add("dragging");
+  if (small()) document.body.classList.add("dragging-small");
+  getSelection()?.removeAllRanges();
+}
+function moveDrag(e) {
+  const g = drag.ghost;
+  g.style.left = e.clientX - 40 + "px";
+  g.style.top = e.clientY - 24 + "px";
+  if (!small()) {
+    if (e.clientY < 90) window.scrollBy(0, -14);
+    else if (e.clientY > innerHeight - 90) window.scrollBy(0, 14);
+  }
+  const zone = document.elementFromPoint(e.clientX, e.clientY)?.closest("[data-drop]") || null;
+  $$(".drop-target").forEach((n) => n.classList.remove("drop-target"));
+  zone?.classList.add("drop-target");
+  drag.target = zone ? zone.dataset.drop : null;
+}
+function endDrag() {
+  if (!drag) return;
+  if (!drag.active) { drag = null; return; }
+  const { id, target } = drag;
+  cleanupDrag();
+  justDragged = true;
+  setTimeout(() => { justDragged = false; }, 120);
+  const t = tickets.find((x) => x.id === id);
+  if (t && target && t.status !== target) moveTo(t, target);
+  else renderBoard();
+}
+function cleanupDrag() {
+  if (!drag) return;
+  drag.ghost?.remove();
+  drag.card?.classList.remove("is-dragging");
+  document.body.classList.remove("dragging", "dragging-small");
+  $$(".drop-target").forEach((n) => n.classList.remove("drop-target"));
+  drag = null;
+  renderBoard();
+}
+function moveTo(t, target) {
+  const action = { in_progress: "start", queued: "requeue", waiting: "hold", done: "done" }[target];
+  if (action) doAction(t, action);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Ticket actions                                                          */
+/* ---------------------------------------------------------------------- */
+function askResolution(t, prefill = "") {
+  return new Promise((res) => {
+    const d = $("#resolveDlg");
+    $("#resolveFor").textContent = `${ticketNo(t)} - ${t.problem}`;
+    $("#resolveArea").value = t.faultArea || "";
+    $("#resolveText").value = prefill || t.resolution || "";
+    d.returnValue = "";
+    d.addEventListener("close", () => res(d.returnValue === "ok" ? { area: $("#resolveArea").value, text: $("#resolveText").value.trim() } : null), { once: true });
+    d.showModal();
+  });
+}
+function askSwitch(others, t) {
+  return new Promise((res) => {
+    const d = $("#switchDlg");
+    $("#switchText").textContent = `You are working on ${others.map(ticketNo).join(", ")}. Starting ${ticketNo(t)} now will split your attention.`;
+    d.returnValue = "";
+    d.addEventListener("close", () => res(d.returnValue || null), { once: true });
+    d.showModal();
+  });
+}
+
+async function transition(t, action, note = "", extra = {}) {
+  const now = Date.now();
+  const running = t.status === "in_progress" && t.lastStartedAt ? now - t.lastStartedAt : 0;
+  const work = (t.workMs || 0) + running;
+  let patch, text;
+  if (!isAdmin) {
+    patch = { status: "cancelled", completedAt: F.serverTimestamp() };
+    text = "cancelled the ticket";
+  } else {
+    switch (action) {
+      case "start":
+        patch = { status: "in_progress", assignedTo: myName(), lastStartedAt: now, completedAt: null, ...(t.startedAt ? {} : { startedAt: F.serverTimestamp() }) };
+        text = t.status === "waiting" ? "resumed work" : "started working on this"; break;
+      case "hold":
+        patch = { status: "waiting", workMs: work, lastStartedAt: null, completedAt: null };
+        text = "put the ticket on hold"; break;
+      case "requeue":
+        patch = { status: "queued", workMs: work, lastStartedAt: null, completedAt: null };
+        text = "moved the ticket back to the line"; break;
+      case "done":
+        patch = { status: "done", workMs: work, lastStartedAt: null, completedAt: F.serverTimestamp(), resolution: note || t.resolution || "", ...(extra.faultArea ? { faultArea: extra.faultArea } : {}) };
+        text = "marked the ticket as done" + (extra.faultArea ? ` (fault: ${extra.faultArea})` : ""); break;
+      case "cancel":
+        patch = { status: "cancelled", workMs: work, lastStartedAt: null, completedAt: F.serverTimestamp() };
+        text = "cancelled the ticket"; break;
+      default: return;
+    }
+  }
+  if (note) text += `: ${note}`;
+  await F.updateDoc(F.doc(db, "tickets", t.id), { ...patch, history: F.arrayUnion({ t: now, by: myName(), text }) });
+}
+
+async function startTicket(t) {
+  const others = tickets.filter((x) => x.status === "in_progress" && x.id !== t.id);
+  let choice = "both";
+  if (others.length) {
+    choice = await askSwitch(others, t);
+    if (!choice) return false;
+  }
+  if (choice === "swap") for (const o of others) await transition(o, "hold", `paused to start ${ticketNo(t)}`);
+  await transition(t, "start");
+  return true;
+}
+
+async function doAction(t, action, note = "") {
+  try {
+    if (action === "note") {
+      if (!note) { toast("Write a note first.", true); return; }
+      await F.updateDoc(F.doc(db, "tickets", t.id), { history: F.arrayUnion({ t: Date.now(), by: myName(), text: `added a note: ${note}` }) });
+      const el = $("#noteText"); if (el) el.value = "";
+      toast("Note added");
+    } else if (action === "start") {
+      if (await startTicket(t)) toast(ticketNo(t) + " started");
+    } else if (action === "done") {
+      const res = await askResolution(t, note);
+      if (res === null) { renderBoard(); return; }
+      await transition(t, "done", res.text, { faultArea: res.area });
+      toast(ticketNo(t) + " marked as done");
+    } else {
+      await transition(t, action, note);
+      toast({ hold: ticketNo(t) + " on hold", requeue: ticketNo(t) + " is back in line", cancel: ticketNo(t) + " cancelled" }[action] || "Updated");
+    }
+  } catch (ex) { toast(friendlyError(ex), true); renderBoard(); }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Ticket detail                                                           */
+/* ---------------------------------------------------------------------- */
+const sigOf = (t) => [t.status, t.priority, (t.history || []).length].join("|");
+async function openDetail(id) {
+  const t = tickets.find((x) => x.id === id);
+  if (!t) return;
+  openId = id; openSig = sigOf(t);
+  await renderDetail(t);
+  if (!$("#detailDlg").open) $("#detailDlg").showModal();
+}
+$("#detailDlg").addEventListener("close", () => {
+  openId = null;
+  if (location.hash.startsWith("#t=")) history.replaceState(null, "", location.pathname + location.search);
+});
+async function refreshDetail() {
+  const t = tickets.find((x) => x.id === openId);
+  if (!t || !$("#detailDlg").open || sigOf(t) === openSig) return;
+  openSig = sigOf(t);
+  await renderDetail(t);
+}
+function checkHash() {
+  const m = /#t=([\w-]+)/.exec(location.hash);
+  if (m && tickets.some((x) => x.id === m[1])) openDetail(m[1]);
+}
+window.addEventListener("hashchange", checkHash);
+
+async function renderDetail(t) {
+  const owner = !!user && t.requesterUid === user.uid;
+  const canPriv = isAdmin || owner;
+  let priv = null;
+  if (canPriv) {
+    try { const s = await F.getDoc(F.doc(db, "tickets", t.id, "private", "connection")); priv = s.exists() ? s.data() : null; } catch { priv = null; }
+  }
+  const keep = $("#noteText")?.value || "";
+  const p = PRI[t.priority] || PRI.medium;
+  const isOpen = OPEN.includes(t.status);
+  const s = sla(t);
+  const adminButtons = {
+    queued: [["start", "Start working", "primary"], ["cancel", "Cancel ticket", "danger"]],
+    in_progress: [["done", "Mark as done", "ok"], ["hold", "Put on hold"], ["requeue", "Back to line"]],
+    waiting: [["start", "Resume work", "primary"], ["done", "Mark as done", "ok"], ["requeue", "Back to line"]],
+    done: [["requeue", "Reopen"]], cancelled: [["requeue", "Reopen"]]
+  };
+  let buttons = [];
+  if (isAdmin) buttons = adminButtons[t.status] || [];
+  else if (owner && t.status === "queued") buttons = [["cancel", "Cancel my ticket", "danger"]];
+
+  const history = [...(t.history || [])].sort((a, b) => b.t - a.t);
+  const same = tickets.filter((x) => x.id !== t.id && serialKey(x.machineSerial) === serialKey(t.machineSerial)).sort((a, b) => (ms(b.createdAt) ?? 0) - (ms(a.createdAt) ?? 0));
+  const recent = same.filter((x) => (ms(x.createdAt) ?? 0) > Date.now() - 30 * 864e5).length + 1;
+
+  const connection = !canPriv
+    ? `<p class="locked">Connection details are visible only to the engineer and the person who opened the ticket.</p>`
+    : priv
+      ? `<dl class="facts"><div><dt>Connection method</dt><dd>${esc(priv.method)}</dd></div><div><dt>Best time to connect</dt><dd>${esc(t.availability || "Not given")}</dd></div></dl>
+         ${priv.details ? `<div class="secret">${esc(priv.details)}</div><div><button type="button" class="btn sm" data-copy="${esc(priv.details)}">Copy connection details</button></div>` : `<p class="hint">No connection details were added.</p>`}`
+      : `<p class="locked">No connection details found.</p>`;
+
+  $("#detailBody").innerHTML = `
+    <div class="dlg-head">
+      <div>
+        <h2 class="d-title" id="detailTitle">${esc(t.problem)}</h2>
+        <div class="d-sub">
+          <span class="pill s-${t.status}">${STATUS_LABEL[t.status]}</span>
+          <strong class="mono">${ticketNo(t)}</strong>
+          <span>${p.label} priority</span>
+          <span>${esc(CATEGORIES[t.category] || "")}</span>
+          ${t.machineDown ? '<span class="chip down">Machine stopped</span>' : ""}
+          ${recent >= 2 ? `<span class="chip rep">Repeat &times;${recent} in 30 days</span>` : ""}
+        </div>
+      </div>
+      <button type="button" class="x" data-close aria-label="Close">&times;</button>
+    </div>
+    ${s ? `<div class="sla ${s.cls}"><div class="sla-bar"><i style="width:${s.pct}%"></i></div><span>${s.text} (target ${p.slaText})</span></div>` : ""}
+    <dl class="facts">
+      <div><dt>Machine serial no.</dt><dd><button type="button" class="serial" data-machine="${esc(t.machineSerial)}" title="Show all tickets for this machine">${esc(t.machineSerial)}</button> <button type="button" class="btn sm" data-copy="${esc(t.machineSerial)}">Copy</button></dd></div>
+      ${t.machineModel ? `<div><dt>Machine type or model</dt><dd>${esc(t.machineModel)}</dd></div>` : ""}
+      ${t.controller ? `<div><dt>Controller or PLC</dt><dd>${esc(t.controller)}</dd></div>` : ""}
+      ${t.alarm ? `<div><dt>Alarm or error code</dt><dd><span class="alarm">${esc(t.alarm)}</span></dd></div>` : ""}
+      <div><dt>Customer or company</dt><dd>${esc(t.customer)}</dd></div>
+      <div><dt>Fault area</dt><dd>${t.faultArea ? esc(t.faultArea) : (isOpen ? "Recorded when the ticket is closed" : "Not recorded")}</dd></div>
+      <div><dt>Opened by</dt><dd>${esc(t.requesterName)}${owner ? " (you)" : ""}${canPriv && t.contact ? " &middot; " + esc(t.contact) : ""}</dd></div>
+      <div><dt>Opened</dt><dd>${fmtDate(t.createdAt)}</dd></div>
+      <div><dt>Hands-on time</dt><dd class="mono">${dur(handsOn(t))}</dd></div>
+      <div><dt>${t.status === "done" || t.status === "cancelled" ? "Closed" : "Started"}</dt><dd>${fmtDate(t.completedAt || t.startedAt) || "Not yet"}</dd></div>
+      ${(t.tags || []).length ? `<div class="wide"><dt>About</dt><dd>${t.tags.map((x) => `<span class="tag">${esc(x)}</span>`).join("")}</dd></div>` : ""}
+      ${t.details ? `<div class="wide"><dt>Details</dt><dd style="white-space:pre-wrap;display:block">${esc(t.details)}</dd></div>` : ""}
+      ${t.links ? `<div class="wide"><dt>Links</dt><dd>${esc(t.links)}</dd></div>` : ""}
+      ${t.resolution ? `<div class="wide"><dt>Resolution</dt><dd style="white-space:pre-wrap;display:block">${esc(t.resolution)}</dd></div>` : ""}
+    </dl>
+
+    <section class="d-sec"><h3>Remote access</h3>${connection}</section>
+
+    ${isAdmin ? `<section class="d-sec prio-edit"><label for="prioEdit"><strong>Priority</strong></label>
+      <select id="prioEdit">${Object.entries(PRI).map(([k, x]) => `<option value="${k}" ${k === t.priority ? "selected" : ""}>${x.label}</option>`).join("")}</select></section>` : ""}
+
+    ${buttons.length || isOpen ? `<section class="d-sec"><h3>Update</h3>
+      ${isOpen ? `<label class="field"><span class="sr">Note</span><textarea id="noteText" rows="2" maxlength="1000" placeholder="Add a note for the history"></textarea></label>` : ""}
+      <div class="actions">
+        ${isOpen ? `<button class="btn" type="button" data-act="note">Add note</button>` : ""}
+        ${buttons.map(([a, l, k]) => `<button class="btn ${k || ""}" type="button" data-act="${a}">${l}</button>`).join("")}
+        ${location.protocol.startsWith("http") ? `<button class="btn" type="button" data-copy="${esc(location.origin + location.pathname + "#t=" + t.id)}">Copy link</button>` : ""}
+      </div></section>` : ""}
+
+    ${same.length ? `<section class="d-sec"><h3>Other tickets on this machine</h3><ul class="mlist">
+      ${same.slice(0, 5).map((x) => `<li><button type="button" data-open="${x.id}"><span class="mono">${ticketNo(x)}</span><span>${esc(x.problem)}</span><span>${STATUS_LABEL[x.status]}</span></button></li>`).join("")}
+    </ul></section>` : ""}
+
+    <section class="d-sec"><h3>History</h3><ul class="history">
+      ${history.map((h) => `<li><time>${esc(rel(h.t))}</time><span><b>${esc(h.by)}</b> ${esc(h.text)}</span></li>`).join("")}
+    </ul></section>`;
+
+  if ($("#noteText")) $("#noteText").value = keep;
+  $$("#detailBody [data-act]").forEach((b) => {
+    b.onclick = () => doAction(t, b.dataset.act, ($("#noteText")?.value || "").trim());
+  });
+  const pe = $("#prioEdit");
+  if (pe) pe.onchange = async () => {
+    try {
+      await F.updateDoc(F.doc(db, "tickets", t.id), { priority: pe.value, history: F.arrayUnion({ t: Date.now(), by: myName(), text: `changed priority to ${PRI[pe.value].label}` }) });
+    } catch (ex) { toast(friendlyError(ex), true); }
+  };
+}
+
+/* ---------------------------------------------------------------------- */
+/* New ticket (one simple form)                                            */
+/* ---------------------------------------------------------------------- */
+const DRAFT_FIELDS = ["machineSerial", "customer", "problem"];
+const form = $("#newForm");
+$("#newBtn").onclick = openNew;
+$("#fab").onclick = openNew;
+
+function openNew() {
+  if (!ready) return;
+  if (!user) { openAuth("signin"); return; }
+  form.reset();
+  $("#serialSeen").hidden = true;
+  delete form.elements.customer.dataset.auto;
+  try {
+    const d = JSON.parse(store.get("sq.draft", "null"));
+    if (d) for (const k of DRAFT_FIELDS) if (d[k] != null && form.elements[k]) form.elements[k].value = d[k];
+  } catch { /* ignore bad draft */ }
+  const lastMethod = store.get("sq.method", "");
+  if (METHODS.includes(lastMethod)) form.elements.method.value = lastMethod;
+  $("#whoLine").textContent = `This ticket will be opened as ${requesterName()}${user.email ? " (" + user.email + ")" : ""}.`;
+  updateAdvice();
+  $("#newError").hidden = true;
+  $("#newDlg").showModal();
+}
+const requesterName = () => user?.displayName || (user?.email ? user.email.split("@")[0] : "") || "Someone";
+
+function updateAdvice() {
+  const a = advice(form.elements.priority.value || "medium");
+  $("#loadChip").textContent = a.label;
+  $("#loadChip").dataset.level = a.level;
+  $("#prioNote").innerHTML = `<ul class="notes">${a.lines.map((l) => `<li class="${l.kind}">${esc(l.text)}</li>`).join("")}</ul>`;
+}
+$("#prioPick").addEventListener("change", updateAdvice);
+
+// Known machine: fill in the customer from earlier tickets
+form.elements.machineSerial.addEventListener("input", (e) => {
+  const key = serialKey(e.target.value), seen = $("#serialSeen"), cust = form.elements.customer;
+  const list = key ? tickets.filter((t) => serialKey(t.machineSerial) === key).sort((a, b) => (ms(b.createdAt) ?? 0) - (ms(a.createdAt) ?? 0)) : [];
+  if (!list.length) {
+    seen.hidden = true;
+    if (cust.dataset.auto) { cust.value = ""; delete cust.dataset.auto; }
+    return;
+  }
+  const last = list[0];
+  if (last.customer && (!cust.value || cust.dataset.auto)) { cust.value = last.customer; cust.dataset.auto = "1"; }
+  seen.hidden = false;
+  seen.textContent = `Known machine: ${list.length} earlier ticket${list.length > 1 ? "s" : ""}, last was ${ticketNo(last)} (${last.problem}).`;
+});
+form.elements.customer.addEventListener("input", (e) => { delete e.target.dataset.auto; });
+form.addEventListener("input", () => {
+  const d = {};
+  for (const k of DRAFT_FIELDS) d[k] = form.elements[k].value;
+  store.set("sq.draft", JSON.stringify(d));
+});
+
+function titleOf(text) {
+  const t = text.replace(/\s+/g, " ").trim();
+  if (t.length <= 140) return t;
+  const cut = t.slice(0, 139), sp = cut.lastIndexOf(" ");
+  return (sp > 80 ? cut.slice(0, sp) : cut) + "…";
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const v = (n) => String(form.elements[n].value || "").trim();
+  const err = $("#newError");
+  err.hidden = true;
+  if (!v("machineSerial") || !v("customer") || !v("problem")) { err.textContent = "Fill in the serial no., the customer and the problem."; err.hidden = false; return; }
+  $("#newSubmit").disabled = true;
+  try {
+    const counterRef = F.doc(db, "counters", "tickets");
+    const ticketRef = F.doc(F.collection(db, "tickets"));
+    const name = requesterName();
+    const problem = v("problem");
+    const priority = form.elements.priority.value || "medium";
+    let number = 0;
+    await F.runTransaction(db, async (tx) => {
+      const snap = await tx.get(counterRef);
+      number = (snap.exists() ? snap.data().next : 0) + 1;
+      tx.set(counterRef, { next: number });
+      tx.set(ticketRef, {
+        ticketNo: number,
+        machineSerial: v("machineSerial"), customer: v("customer"),
+        requesterName: name, contact: user.email || user.phoneNumber || name, requesterUid: user.uid,
+        category: "remote", priority, machineDown: priority === "critical",
+        problem: titleOf(problem), details: problem.length > 140 ? problem : "",
+        status: "queued", createdAt: F.serverTimestamp(), startedAt: null, completedAt: null, lastStartedAt: null, workMs: 0,
+        assignedTo: null, resolution: "",
+        history: [{ t: Date.now(), by: myName(), text: "Ticket opened" }]
+      });
+      tx.set(F.doc(ticketRef, "private", "connection"), { requesterUid: user.uid, method: v("method"), details: v("connDetails"), createdAt: F.serverTimestamp() });
+    });
+    store.del("sq.draft");
+    store.set("sq.method", v("method"));
+    form.reset();
+    $("#newDlg").close();
+    toast("Ticket T-" + String(number).padStart(4, "0") + " submitted");
+  } catch (ex) {
+    err.textContent = "Couldn't submit the ticket. " + friendlyError(ex);
+    err.hidden = false;
+  } finally { $("#newSubmit").disabled = false; }
+});
+
+/* ---------------------------------------------------------------------- */
+/* Insights                                                                */
+/* ---------------------------------------------------------------------- */
+function rowsHtml(items, attr, emptyText) {
+  if (!items.length) return `<p class="empty">${esc(emptyText || "No tickets in this period.")}</p>`;
+  const max = Math.max(...items.map((i) => i.n), 1);
+  return `<div class="rows">${items.map((i) => `
+    <button type="button" class="rowbar" ${attr}="${esc(i.key)}" title="Show these tickets on the board">
+      <span class="lab">${esc(i.label)}</span><span class="track"><i style="width:${Math.round(i.n / max * 100)}%"></i></span><span class="n">${i.n}</span>
+    </button>`).join("")}</div>`;
+}
+function group(list, keyFn, labelFn) {
+  const m = new Map();
+  for (const t of list) { const k = keyFn(t); m.set(k, (m.get(k) || 0) + 1); }
+  return [...m.entries()].map(([key, n]) => ({ key, n, label: labelFn(key) })).sort((a, b) => b.n - a.n);
+}
+function renderInsights() {
+  $$("#rangeSeg button").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.range === range)));
+  const now = Date.now(), from = now - range * 864e5;
+  const opened = tickets.filter((t) => (ms(t.createdAt) || 0) >= from);
+  const closed = tickets.filter((t) => t.status === "done" && (ms(t.completedAt) || 0) >= from);
+  const resp = opened.filter((t) => t.startedAt && ms(t.createdAt)).map((t) => ms(t.startedAt) - ms(t.createdAt));
+  const ttc = closed.filter((t) => ms(t.createdAt)).map((t) => ms(t.completedAt) - ms(t.createdAt));
+  const inTime = opened.filter((t) => t.startedAt && ms(t.startedAt) - ms(t.createdAt) <= (PRI[t.priority]?.slaMin || 1440) * 60000).length;
+  const hands = closed.reduce((s, t) => s + (t.workMs || 0), 0);
+  const mr = median(resp), mc = median(ttc);
+
+  const n = range === 90 ? 13 : range, size = range === 90 ? 7 * 864e5 : 864e5;
+  const buckets = Array.from({ length: n }, (_, i) => ({ s: from + i * size, o: 0, c: 0 }));
+  const put = (v, key) => { const t = ms(v); if (t == null || t < from) return; const i = Math.min(n - 1, Math.floor((t - from) / size)); buckets[i][key]++; };
+  for (const t of opened) put(t.createdAt, "o");
+  for (const t of closed) put(t.completedAt, "c");
+  const max = Math.max(1, ...buckets.map((b) => Math.max(b.o, b.c)));
+  const step = n > 14 ? 5 : 1;
+  const label = (b) => { const d = new Date(b.s); return range === 90 ? `${d.getDate()}/${d.getMonth() + 1}` : String(d.getDate()); };
+
+  const byArea = group(closed.filter((t) => t.faultArea), (t) => t.faultArea, (k) => k).slice(0, 8);
+  const byMachine = group(opened, (t) => serialKey(t.machineSerial), (k) => opened.find((t) => serialKey(t.machineSerial) === k).machineSerial).slice(0, 8);
+  const byPri = Object.keys(PRI).map((k) => ({ key: k, label: PRI[k].label, n: opened.filter((t) => t.priority === k).length })).filter((x) => x.n);
+  const custKey = (t) => String(t.customer || "").trim().toLowerCase();
+  const byCust = group(opened, custKey, (k) => opened.find((t) => custKey(t) === k).customer).slice(0, 8);
+
+  $("#insBody").innerHTML = `
+    <dl class="kpis">
+      <div class="kpi"><dt>Opened</dt><dd>${opened.length}</dd></div>
+      <div class="kpi"><dt>Closed</dt><dd>${closed.length}</dd></div>
+      <div class="kpi"><dt>Typical first reply</dt><dd>${mr == null ? "&ndash;" : dur(mr)}</dd></div>
+      <div class="kpi"><dt>Typical time to close</dt><dd>${mc == null ? "&ndash;" : dur(mc)}</dd></div>
+      <div class="kpi"><dt>Replied in time</dt><dd>${resp.length ? Math.round(inTime / resp.length * 100) + "%" : "&ndash;"}</dd><small>${inTime} of ${resp.length} against the reply targets</small></div>
+      <div class="kpi"><dt>Hands-on time</dt><dd>${hands ? dur(hands) : "&ndash;"}</dd><small>on tickets closed in this period</small></div>
+    </dl>
+    <div class="ins-grid">
+      <section class="panel wide"><h3>Opened and closed</h3>
+        <div class="legend"><span><i style="background:var(--med)"></i>Opened</span><span><i style="background:var(--ok)"></i>Closed</span><span>${range === 90 ? "per week" : "per day"}</span></div>
+        <div class="cols">${buckets.map((b) => `<div class="col" title="${new Date(b.s).toLocaleDateString()}: ${b.o} opened, ${b.c} closed"><span class="bar o" style="height:${Math.round(b.o / max * 100)}%"></span><span class="bar c" style="height:${Math.round(b.c / max * 100)}%"></span></div>`).join("")}</div>
+        <div class="axis">${buckets.map((b, i) => `<span>${i % step === 0 ? label(b) : ""}</span>`).join("")}</div>
+      </section>
+      <section class="panel"><h3>Fault area, from closed tickets</h3>${rowsHtml(byArea, "data-area", "Fault areas appear here after tickets are closed.")}</section>
+      <section class="panel"><h3>Machines with the most tickets</h3>${rowsHtml(byMachine, "data-machine")}</section>
+      <section class="panel"><h3>Priority</h3>${rowsHtml(byPri, "data-pri-go")}</section>
+      <section class="panel"><h3>Customers with the most tickets</h3>${rowsHtml(byCust, "data-cust")}</section>
+    </div>`;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Go                                                                      */
+/* ---------------------------------------------------------------------- */
+const configured = !String(FIREBASE_CONFIG.apiKey).startsWith("PASTE");
+const missing = ["apiKey", "authDomain", "projectId", "appId"].filter((k) => !FIREBASE_CONFIG[k] || String(FIREBASE_CONFIG[k]).includes("PASTE"));
+if (!configured) showScreen("setup");
+else if (missing.length) fatal("Your Firebase settings are incomplete.", `These values in FIREBASE_CONFIG (near the top of index.html) are missing or still say PASTE: ${missing.join(", ")}.\nCopy them from Firebase console > Project settings > Your apps > Web app > Config.`);
+else start();
+
+</script>
+</body>
+</html>
